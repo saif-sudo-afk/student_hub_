@@ -2,22 +2,20 @@
 Authentication and user management views.
 """
 
-import secrets
-import string
 from datetime import timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from .models import CustomUser, EmailVerificationToken, PasswordResetToken, StudentProfile
+from .models import CustomUser, EmailVerificationToken, PasswordResetToken
 from .serializers import (
     StudentRegisterSerializer,
     LoginSerializer,
@@ -65,27 +63,10 @@ def register_student(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    user = serializer.save()
-
-    # Create and send email verification token
-    token_obj, _ = EmailVerificationToken.objects.get_or_create(user=user)
-    verify_url = f"{settings.FRONTEND_URL}/auth/verify-email/{token_obj.token}"
-
-    html = render_to_string('emails/verification.html', {
-        'first_name': user.first_name,
-        'verification_url': verify_url,
-    })
-    send_mail(
-        subject='Student Hub — Verify your email',
-        message='',
-        html_message=html,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=True,
-    )
+    serializer.save()
 
     return Response(
-        {'detail': 'Registration successful. Please check your email to verify your account.'},
+        {'detail': 'Registration successful. You can now log in.'},
         status=status.HTTP_201_CREATED,
     )
 
