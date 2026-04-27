@@ -1,0 +1,359 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "about": "À propos",
+    "features": "Fonctionnalités",
+    "contact": "Contact"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "search": "Rechercher",
+    "noData": "Aucun enregistrement trouvé.",
+    "pageOf": "Page {{page}} sur {{total}}",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "remove": "Retirer",
+    "language": "Changer de langue",
+    "theme": "Changer de thème",
+    "close": "Fermer",
+    "menu": "Ouvrir le menu",
+    "none": "Aucun",
+    "allMajors": "Toutes les filières",
+    "save": "Enregistrer",
+    "saved": "Enregistré avec succès.",
+    "publish": "Publier",
+    "approve": "Approuver",
+    "reject": "Refuser",
+    "submit": "Envoyer"
+  },
+  "errors": {
+    "invalidFileType": "Seuls les fichiers PDF, XLS, XLSX, PPTX et ZIP sont autorisés.",
+    "fileTooLarge": "Chaque fichier doit faire 40 Mo ou moins.",
+    "loginFailed": "Connexion impossible. Vérifiez vos identifiants puis réessayez.",
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "termsRequired": "Vous devez accepter la politique de confidentialité et les conditions d'utilisation.",
+    "registrationFailed": "Inscription impossible. Vérifiez le formulaire puis réessayez.",
+    "saveFailed": "La demande n'a pas pu être terminée."
+  },
+  "roles": {
+    "ADMIN": "Admin",
+    "PROFESSOR": "Professeur",
+    "STUDENT": "Étudiant"
+  },
+  "priority": {
+    "LOW": "Faible",
+    "MEDIUM": "Moyenne",
+    "HIGH": "Haute",
+    "URGENT": "Urgente"
+  },
+  "status": {
+    "DRAFT": "Brouillon",
+    "PENDING": "En attente",
+    "APPROVED": "Approuvé",
+    "REJECTED": "Refusé"
+  },
+  "filters": {
+    "role": "Rôle",
+    "status": "Statut",
+    "type": "Type"
+  },
+  "tables": {
+    "name": "Nom",
+    "email": "Email",
+    "role": "Rôle",
+    "major": "Filière",
+    "actions": "Actions",
+    "code": "Code",
+    "description": "Description",
+    "title": "Titre",
+    "status": "Statut",
+    "professor": "Professeur",
+    "student": "Étudiant",
+    "group": "Groupe",
+    "leader": "Responsable",
+    "members": "Membres",
+    "type": "Type",
+    "deadline": "Échéance",
+    "submittedAt": "Envoyé le",
+    "grade": "Note",
+    "feedback": "Retour",
+    "message": "Message",
+    "date": "Date",
+    "files": "Fichiers",
+    "submissions": "Soumissions",
+    "activeAssignments": "Devoirs actifs",
+    "submissionRate": "Taux de soumission",
+    "approvalRate": "Taux d'approbation",
+    "gradeAverage": "Moyenne",
+    "activityScore": "Score d'activité"
+  },
+  "forms": {
+    "email": "Email",
+    "password": "Mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "confirmPassword": "Confirmer le mot de passe",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "phone": "Téléphone",
+    "phone_number": "Téléphone",
+    "major": "Filière",
+    "majors": "Filières",
+    "selectMajor": "Sélectionner une filière",
+    "year": "Année d'étude",
+    "name": "Nom",
+    "code": "Code",
+    "description": "Description",
+    "schoolYear": "Année scolaire",
+    "title": "Titre",
+    "course": "Cours",
+    "projectLink": "Lien GitHub ou Drive",
+    "profilePicture": "Photo de profil",
+    "uploadPrompt": "Déposez des fichiers ici ou choisissez des fichiers",
+    "uploadRules": "Acceptés : PDF, XLS, XLSX, PPTX, ZIP. Maximum 40 Mo par fichier."
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "signUp": "S'inscrire",
+    "signOut": "Se déconnecter",
+    "continueGoogle": "Continuer avec Google",
+    "loginTitle": "Bon retour",
+    "loginSubtitle": "Connectez-vous avec votre compte académique.",
+    "loginSuccess": "Connexion réussie.",
+    "forgotPassword": "Mot de passe oublié ?",
+    "createAccount": "Créer un compte",
+    "registerTitle": "Créer votre compte étudiant",
+    "registerSubtitle": "Rejoignez votre filière et activez votre espace académique.",
+    "agreePrefix": "J'accepte la",
+    "termsLink": "politique de confidentialité et les conditions d'utilisation",
+    "termsTitle": "Politique de confidentialité et conditions d'utilisation",
+    "termsBody": [
+      "Student Hub conserve votre profil académique, vos soumissions, vos notes et vos notifications afin que l'école puisse gérer les parcours de manière sécurisée.",
+      "Vous acceptez de téléverser uniquement du contenu académique que vous êtes autorisé à partager et de garder vos identifiants confidentiels.",
+      "Les administrateurs et les professeurs assignés peuvent consulter l'activité académique liée à leurs responsabilités."
+    ],
+    "registrationSuccess": "Inscription terminée. Vérifiez votre email pour activer votre compte.",
+    "verifying": "Vérification de votre adresse email...",
+    "verifyTitle": "Vérification email",
+    "verifySuccess": "Votre email a été vérifié. Vous pouvez vous connecter.",
+    "verifyFailed": "Ce lien de vérification est invalide ou expiré.",
+    "resetTitle": "Réinitialiser le mot de passe",
+    "resetSubtitle": "Indiquez votre email et nous enverrons un lien sécurisé.",
+    "resetSent": "Si un compte existe, un lien de réinitialisation a été envoyé.",
+    "sendReset": "Envoyer le lien",
+    "newPasswordTitle": "Choisir un nouveau mot de passe",
+    "newPasswordSubtitle": "Utilisez un mot de passe solide et unique.",
+    "changePasswordTitle": "Changer le mot de passe",
+    "forcePasswordSubtitle": "Votre compte professeur utilise un mot de passe temporaire. Changez-le avant de continuer.",
+    "changePassword": "Changer le mot de passe",
+    "passwordChanged": "Mot de passe changé avec succès."
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "Pilotage académique dans un seul espace",
+      "title": "Votre Monde Académique, Unifié.",
+      "subtitle": "Student Hub connecte étudiants, professeurs et administrateurs autour des devoirs, calendriers, annonces, fichiers, notes et notifications.",
+      "primary": "Commencer",
+      "secondary": "En savoir plus"
+    },
+    "mockup": {
+      "label": "Tableau de bord en direct",
+      "title": "Semestre de printemps",
+      "score": "91 %",
+      "cards": [
+        { "title": "Devoirs remis", "value": "1 024" },
+        { "title": "Filières actives", "value": "12" },
+        { "title": "Professeurs connectés", "value": "48" },
+        { "title": "Annonces envoyées", "value": "326" }
+      ]
+    },
+    "about": {
+      "eyebrow": "À propos de Student Hub",
+      "title": "Conçu pour une coordination académique rigoureuse.",
+      "body": "Student Hub offre aux institutions un système fiable pour structurer les cours, gérer les devoirs, organiser les projets de groupe, publier les notes, diffuser les événements et suivre l'activité des étudiants.",
+      "audience": ["Étudiants", "Professeurs", "Administrateurs"],
+      "pillars": [
+        { "title": "Responsabilités claires", "text": "Chaque rôle accède aux outils, données et actions correspondant à ses responsabilités." },
+        { "title": "Visibilité opérationnelle", "text": "Les tableaux de bord exposent les soumissions, échéances, annonces et progrès avant que les problèmes deviennent urgents." },
+        { "title": "Communication fiable", "text": "Les notifications intégrées et les emails de marque rendent chaque événement académique traçable." }
+      ]
+    },
+    "features": {
+      "eyebrow": "Fonctionnalités",
+      "title": "Tout ce qu'un workflow académique attend.",
+      "items": [
+        { "title": "Gestion des devoirs", "text": "Créez des TP, TD et projets avec fichiers, échéances, statuts de correction, notes et retours." },
+        { "title": "Calendrier académique", "text": "Publiez des événements par filière ou pour toute l'institution avec couleurs de priorité et vue liste." },
+        { "title": "Annonces", "text": "Les admins publient directement tandis que les annonces des professeurs passent par une validation." },
+        { "title": "Accès par rôle", "text": "Admins, professeurs et étudiants disposent de tableaux de bord et permissions API distincts." },
+        { "title": "Téléversement de fichiers", "text": "Stockage Cloudinary brut avec validation frontend et backend des fichiers académiques autorisés." },
+        { "title": "Suivi des notes", "text": "Les notes, taux d'approbation et scores d'activité sont calculés côté serveur et affichés clairement." },
+        { "title": "Projets de groupe", "text": "Les professeurs créent les groupes, assignent les responsables et corrigent les liens de projet." },
+        { "title": "Notifications", "text": "Chaque action importante crée une notification intégrée et un email." }
+      ]
+    },
+    "how": {
+      "eyebrow": "Fonctionnement",
+      "title": "De l'inscription au travail académique quotidien.",
+      "steps": [
+        { "title": "Inscription", "text": "Les étudiants s'inscrivent avec leur filière, année, coordonnées et email vérifié." },
+        { "title": "Rejoindre sa filière", "text": "Cours, devoirs, annonces et événements sont filtrés selon le parcours académique." },
+        { "title": "Tout accéder", "text": "Remettez les travaux, rejoignez les groupes, suivez les notes, lisez les annonces et gérez le profil." }
+      ]
+    },
+    "stats": {
+      "items": [
+        { "value": "500+", "label": "Étudiants coordonnés" },
+        { "value": "50+", "label": "Professeurs accompagnés" },
+        { "value": "1000+", "label": "Devoirs soumis" },
+        { "value": "98%", "label": "Satisfaction workflow" }
+      ]
+    },
+    "footer": {
+      "body": "Pour les équipes académiques qui veulent mieux coordonner les cours, la communication et le progrès.",
+      "email": "contact@studenthub.example",
+      "copyright": "© 2025 Student Hub. Tous droits réservés."
+    }
+  },
+  "admin": {
+    "nav": {
+      "overview": "Vue d'ensemble",
+      "users": "Gestion des utilisateurs",
+      "structure": "Structure pédagogique",
+      "calendar": "Calendrier académique",
+      "announcements": "Annonces",
+      "files": "Suivi des fichiers",
+      "settings": "Paramètres"
+    },
+    "stats": {
+      "students": "Total étudiants",
+      "professors": "Total professeurs",
+      "assignments": "Devoirs actifs",
+      "pending": "Annonces en attente"
+    },
+    "overview": {
+      "activity": "Distribution de l'activité étudiante",
+      "recent": "Taux de soumission par filière"
+    },
+    "users": {
+      "title": "Gestion des utilisateurs",
+      "subtitle": "Rechercher, filtrer, activer, désactiver et créer des comptes professeurs.",
+      "createProfessor": "Créer un professeur",
+      "professorCreated": "Compte professeur créé.",
+      "sendWelcome": "Envoyer l'email de bienvenue avec les identifiants temporaires",
+      "activate": "Activer",
+      "deactivate": "Désactiver"
+    },
+    "structure": {
+      "majors": "Filières",
+      "courses": "Cours",
+      "semesters": "Semestres",
+      "semesterOne": "Semestre 1",
+      "semesterTwo": "Semestre 2",
+      "active": "Définir comme semestre actif"
+    },
+    "calendar": {
+      "create": "Créer un événement"
+    },
+    "announcements": {
+      "create": "Créer une annonce",
+      "reasonPrompt": "Indiquez la raison du refus"
+    },
+    "files": {
+      "title": "Suivi des fichiers et de l'activité professeur"
+    },
+    "settings": {
+      "title": "Paramètres institutionnels",
+      "body": "Les paramètres d'environnement, CORS, stockage, SMTP et OAuth sont gérés par les variables d'environnement du déploiement."
+    }
+  },
+  "professor": {
+    "nav": {
+      "dashboard": "Mon tableau de bord",
+      "courses": "Mes cours",
+      "assignments": "Devoirs",
+      "groups": "Projets de groupe",
+      "activity": "Activité étudiante",
+      "announcements": "Annonces",
+      "notifications": "Notifications"
+    },
+    "home": {
+      "welcome": "Bon retour, Professeur",
+      "submissionChart": "Taux de soumission par devoir"
+    },
+    "stats": {
+      "active": "Devoirs actifs",
+      "pending": "Soumissions en attente",
+      "approved": "Approuvés aujourd'hui",
+      "rejected": "Refusés aujourd'hui"
+    },
+    "courses": {
+      "title": "Cours assignés"
+    },
+    "assignments": {
+      "create": "Créer un devoir",
+      "viewSubmissions": "Voir les soumissions",
+      "gradePrompt": "Note de 0 à 20",
+      "feedbackPrompt": "Retour obligatoire pour le refus",
+      "optionalFeedback": "Retour optionnel"
+    },
+    "groups": {
+      "create": "Créer un projet de groupe"
+    },
+    "activity": {
+      "empty": "L'activité étudiante nécessite un endpoint professeur autorisé."
+    },
+    "announcements": {
+      "request": "Demander une annonce",
+      "requestSent": "Demande d'annonce envoyée."
+    }
+  },
+  "student": {
+    "nav": {
+      "home": "Accueil",
+      "assignments": "Devoirs",
+      "groups": "Projets de groupe",
+      "announcements": "Annonces",
+      "calendar": "Calendrier académique",
+      "notifications": "Notifications",
+      "profile": "Mon profil"
+    },
+    "home": {
+      "greeting": "Bon retour",
+      "upcoming": "Prochains devoirs",
+      "noUpcoming": "Aucune échéance à venir.",
+      "latestAnnouncements": "Dernières annonces",
+      "activityScore": "Score d'activité",
+      "reminders": "Rappels",
+      "reminderBody": "Vérifiez les devoirs en retard, soumissions en attente et messages des professeurs avant la prochaine échéance."
+    },
+    "assignments": {
+      "by": "Publié par {{professor}}",
+      "submit": "Soumettre",
+      "submitted": "Devoir soumis."
+    },
+    "groups": {
+      "leader": "Responsable : {{leader}}",
+      "submitProject": "Soumettre le projet",
+      "submitted": "Lien du projet soumis."
+    },
+    "announcements": {
+      "filters": {
+        "ALL": "Toutes",
+        "ADMIN": "Annonces admin",
+        "PROFESSOR": "Annonces professeur"
+      }
+    },
+    "profile": {
+      "stats": "Statistiques du compte"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "latest": "Dernières notifications",
+    "empty": "Aucune notification pour le moment.",
+    "markAll": "Tout marquer comme lu",
+    "markRead": "Marquer comme lu"
+  }
+}

@@ -1,0 +1,26 @@
+# Environment secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Local runtimes and dependency folders
+backend/.venv/
+backend/.python312/
+backend/.tmp/
+backend/db.sqlite3
+backend/staticfiles/
+backend/media/
+frontend/node_modules/
+frontend/dist/
+.vercel/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.sqlite3

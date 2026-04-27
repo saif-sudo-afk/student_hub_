@@ -1,0 +1,359 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "features": "Features",
+    "contact": "Contact"
+  },
+  "common": {
+    "loading": "Loading...",
+    "search": "Search",
+    "noData": "No records found.",
+    "pageOf": "Page {{page}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next",
+    "remove": "Remove",
+    "language": "Change language",
+    "theme": "Change theme",
+    "close": "Close",
+    "menu": "Open menu",
+    "none": "None",
+    "allMajors": "All majors",
+    "save": "Save",
+    "saved": "Saved successfully.",
+    "publish": "Publish",
+    "approve": "Approve",
+    "reject": "Reject",
+    "submit": "Submit"
+  },
+  "errors": {
+    "invalidFileType": "Only PDF, XLS, XLSX, PPTX, and ZIP files are allowed.",
+    "fileTooLarge": "Each file must be 40 MB or smaller.",
+    "loginFailed": "Unable to sign in. Check your credentials and try again.",
+    "passwordMismatch": "Passwords do not match.",
+    "termsRequired": "You must accept the privacy policy and terms of use.",
+    "registrationFailed": "Registration failed. Please review the form and try again.",
+    "saveFailed": "The request could not be completed."
+  },
+  "roles": {
+    "ADMIN": "Admin",
+    "PROFESSOR": "Professor",
+    "STUDENT": "Student"
+  },
+  "priority": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "URGENT": "Urgent"
+  },
+  "status": {
+    "DRAFT": "Draft",
+    "PENDING": "Pending",
+    "APPROVED": "Approved",
+    "REJECTED": "Rejected"
+  },
+  "filters": {
+    "role": "Role",
+    "status": "Status",
+    "type": "Type"
+  },
+  "tables": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "major": "Major",
+    "actions": "Actions",
+    "code": "Code",
+    "description": "Description",
+    "title": "Title",
+    "status": "Status",
+    "professor": "Professor",
+    "student": "Student",
+    "group": "Group",
+    "leader": "Leader",
+    "members": "Members",
+    "type": "Type",
+    "deadline": "Deadline",
+    "submittedAt": "Submitted at",
+    "grade": "Grade",
+    "feedback": "Feedback",
+    "message": "Message",
+    "date": "Date",
+    "files": "Files",
+    "submissions": "Submissions",
+    "activeAssignments": "Active assignments",
+    "submissionRate": "Submission rate",
+    "approvalRate": "Approval rate",
+    "gradeAverage": "Grade average",
+    "activityScore": "Activity score"
+  },
+  "forms": {
+    "email": "Email",
+    "password": "Password",
+    "currentPassword": "Current password",
+    "confirmPassword": "Confirm password",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "first_name": "First name",
+    "last_name": "Last name",
+    "phone": "Phone number",
+    "phone_number": "Phone number",
+    "major": "Major",
+    "majors": "Majors",
+    "selectMajor": "Select a major",
+    "year": "Year of study",
+    "name": "Name",
+    "code": "Code",
+    "description": "Description",
+    "schoolYear": "School year",
+    "title": "Title",
+    "course": "Course",
+    "projectLink": "GitHub or Drive link",
+    "profilePicture": "Profile picture",
+    "uploadPrompt": "Drop files here or choose files",
+    "uploadRules": "Accepted: PDF, XLS, XLSX, PPTX, ZIP. Maximum 40 MB per file."
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "continueGoogle": "Continue with Google",
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Sign in with your academic account.",
+    "loginSuccess": "Signed in successfully.",
+    "forgotPassword": "Forgot password?",
+    "createAccount": "Create an account",
+    "registerTitle": "Create your student account",
+    "registerSubtitle": "Join your major and activate your academic workspace.",
+    "agreePrefix": "I agree to the",
+    "termsLink": "privacy policy and terms of use",
+    "termsTitle": "Privacy Policy and Terms of Use",
+    "termsBody": [
+      "Student Hub stores your academic profile, submissions, grades, and notifications so your school can manage learning workflows securely.",
+      "You agree to upload only academic material you are authorized to share and to keep your credentials private.",
+      "Administrators and assigned professors may review academic activity connected to their responsibilities."
+    ],
+    "registrationSuccess": "Registration complete. Check your email to verify your account.",
+    "verifying": "Verifying your email address...",
+    "verifyTitle": "Email verification",
+    "verifySuccess": "Your email has been verified. You can now sign in.",
+    "verifyFailed": "This verification link is invalid or expired.",
+    "resetTitle": "Reset your password",
+    "resetSubtitle": "Enter your email address and we will send a secure reset link.",
+    "resetSent": "If an account exists, a reset link has been sent.",
+    "sendReset": "Send reset link",
+    "newPasswordTitle": "Choose a new password",
+    "newPasswordSubtitle": "Use a strong password you do not use elsewhere.",
+    "changePasswordTitle": "Change password",
+    "forcePasswordSubtitle": "Your professor account uses a temporary password. Change it before continuing.",
+    "changePassword": "Change password",
+    "passwordChanged": "Password changed successfully."
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "Academic operations in one workspace",
+      "title": "Your Academic World, Unified.",
+      "subtitle": "Student Hub connects students, professors, and administrators through assignments, calendars, announcements, files, grades, and notifications.",
+      "primary": "Get Started",
+      "secondary": "Learn More"
+    },
+    "mockup": {
+      "label": "Live academic dashboard",
+      "title": "Spring Semester",
+      "score": "91%",
+      "cards": [
+        { "title": "Assignments submitted", "value": "1,024" },
+        { "title": "Active majors", "value": "12" },
+        { "title": "Professors online", "value": "48" },
+        { "title": "Announcements sent", "value": "326" }
+      ]
+    },
+    "about": {
+      "eyebrow": "About Student Hub",
+      "title": "Built for disciplined academic coordination.",
+      "body": "Student Hub gives institutions a single, reliable system for course structure, assignment workflows, group projects, grades, calendar events, announcements, and student activity monitoring.",
+      "audience": ["Students", "Professors", "Administrators"],
+      "pillars": [
+        { "title": "Clear ownership", "text": "Each role sees the tools, data, and actions that match their responsibilities." },
+        { "title": "Operational visibility", "text": "Dashboards surface submissions, deadlines, announcements, and progress before issues become urgent." },
+        { "title": "Reliable communication", "text": "In-app notifications and branded emails keep every academic event traceable." }
+      ]
+    },
+    "features": {
+      "eyebrow": "Platform features",
+      "title": "Everything the academic workflow expects.",
+      "items": [
+        { "title": "Assignment Management", "text": "Create TP, TD, and project assignments with files, deadlines, review states, grades, and feedback." },
+        { "title": "Academic Calendar", "text": "Publish major-specific or institution-wide events with priority colors and list views." },
+        { "title": "Announcements", "text": "Admins publish directly while professor announcements go through an approval workflow." },
+        { "title": "Role-Based Access", "text": "Admins, professors, and students get distinct dashboards and API permissions." },
+        { "title": "File Uploads", "text": "Cloudinary-backed raw uploads with frontend and backend validation for allowed academic files." },
+        { "title": "Grade Tracking", "text": "Grades, approval rates, and activity scores are calculated server-side and displayed clearly." },
+        { "title": "Group Projects", "text": "Professors create groups, assign leaders, and review project links from one place." },
+        { "title": "Real-time Notifications", "text": "Every important action creates an in-app notification and an email." }
+      ]
+    },
+    "how": {
+      "eyebrow": "How it works",
+      "title": "From registration to daily academic work.",
+      "steps": [
+        { "title": "Sign Up", "text": "Students register with their major, year, contact information, and verified email." },
+        { "title": "Join Your Major", "text": "Courses, assignments, announcements, and calendar events become filtered to the correct academic path." },
+        { "title": "Access Everything", "text": "Submit work, join groups, track grades, read announcements, and manage your profile." }
+      ]
+    },
+    "stats": {
+      "items": [
+        { "value": "500+", "label": "Students coordinated" },
+        { "value": "50+", "label": "Professors supported" },
+        { "value": "1000+", "label": "Assignments submitted" },
+        { "value": "98%", "label": "Workflow satisfaction" }
+      ]
+    },
+    "footer": {
+      "body": "For academic teams that need a sharper way to coordinate coursework, communication, and progress.",
+      "email": "contact@studenthub.example",
+      "copyright": "© 2025 Student Hub. All rights reserved."
+    }
+  },
+  "admin": {
+    "nav": {
+      "overview": "Dashboard Overview",
+      "users": "User Management",
+      "structure": "Pedagogique Structure",
+      "calendar": "Academic Calendar",
+      "announcements": "Announcements",
+      "files": "File Monitor",
+      "settings": "Settings"
+    },
+    "stats": {
+      "students": "Total Students",
+      "professors": "Total Professors",
+      "assignments": "Active Assignments",
+      "pending": "Pending Announcements"
+    },
+    "overview": {
+      "activity": "Student activity distribution",
+      "recent": "Submission rates by major"
+    },
+    "users": {
+      "title": "User Management",
+      "subtitle": "Search, filter, activate, deactivate, and create professor accounts.",
+      "createProfessor": "Create Professor",
+      "professorCreated": "Professor account created.",
+      "sendWelcome": "Send welcome email with temporary credentials",
+      "activate": "Activate",
+      "deactivate": "Deactivate"
+    },
+    "structure": {
+      "majors": "Majors",
+      "courses": "Courses",
+      "semesters": "Semesters",
+      "semesterOne": "Semester 1",
+      "semesterTwo": "Semester 2",
+      "active": "Set as active semester"
+    },
+    "calendar": {
+      "create": "Create event"
+    },
+    "announcements": {
+      "create": "Create announcement",
+      "reasonPrompt": "Enter the decline reason"
+    },
+    "files": {
+      "title": "File and professor activity monitor"
+    },
+    "settings": {
+      "title": "Institution settings",
+      "body": "Core environment, CORS, storage, SMTP, and OAuth settings are controlled through deployment environment variables."
+    }
+  },
+  "professor": {
+    "nav": {
+      "dashboard": "My Dashboard",
+      "courses": "My Courses",
+      "assignments": "Assignments",
+      "groups": "Group Projects",
+      "activity": "Student Activity",
+      "announcements": "Announcements",
+      "notifications": "Notifications"
+    },
+    "home": {
+      "welcome": "Welcome back, Professor",
+      "submissionChart": "Submission rates per assignment"
+    },
+    "stats": {
+      "active": "Active Assignments",
+      "pending": "Pending Submissions",
+      "approved": "Approved Today",
+      "rejected": "Rejected Today"
+    },
+    "courses": {
+      "title": "Assigned courses"
+    },
+    "assignments": {
+      "create": "Create assignment",
+      "viewSubmissions": "View submissions",
+      "gradePrompt": "Grade from 0 to 20",
+      "feedbackPrompt": "Required rejection feedback",
+      "optionalFeedback": "Optional feedback"
+    },
+    "groups": {
+      "create": "Create group project"
+    },
+    "activity": {
+      "empty": "Student activity requires an authorized professor activity endpoint."
+    },
+    "announcements": {
+      "request": "Request announcement",
+      "requestSent": "Announcement request sent."
+    }
+  },
+  "student": {
+    "nav": {
+      "home": "Home",
+      "assignments": "Assignments",
+      "groups": "Group Projects",
+      "announcements": "Announcements",
+      "calendar": "Academic Calendar",
+      "notifications": "Notifications",
+      "profile": "My Profile"
+    },
+    "home": {
+      "greeting": "Welcome back",
+      "upcoming": "Upcoming assignments",
+      "noUpcoming": "No upcoming deadlines.",
+      "latestAnnouncements": "Latest announcements",
+      "activityScore": "Activity score",
+      "reminders": "Reminders",
+      "reminderBody": "Review overdue assignments, pending submissions, and professor notices before the next deadline."
+    },
+    "assignments": {
+      "by": "Posted by {{professor}}",
+      "submit": "Submit",
+      "submitted": "Assignment submitted."
+    },
+    "groups": {
+      "leader": "Leader: {{leader}}",
+      "submitProject": "Submit project",
+      "submitted": "Project link submitted."
+    },
+    "announcements": {
+      "filters": {
+        "ALL": "All",
+        "ADMIN": "Admin announcements",
+        "PROFESSOR": "Professor announcements"
+      }
+    },
+    "profile": {
+      "stats": "Account stats"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "latest": "Latest notifications",
+    "empty": "No notifications yet.",
+    "markAll": "Mark all as read",
+    "markRead": "Mark as read"
+  }
+}

@@ -1,0 +1,3 @@
+"""
+Announcement signals — placeholder.
+"""
