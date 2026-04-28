@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   BarChart3,
   BookOpen,
   CalendarDays,
+  CalendarRange,
   FileSearch,
+  GraduationCap,
   LayoutDashboard,
   Megaphone,
   Plus,
   Settings,
   Trash2,
   Users,
+  X,
 } from 'lucide-react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -210,14 +213,24 @@ function UsersSection() {
   )
 }
 
+const STRUCTURE_TABS = ['majors', 'courses', 'semesters']
+const STRUCTURE_ICON = { majors: GraduationCap, courses: BookOpen, semesters: CalendarRange }
+const STRUCTURE_COLOR = { majors: 'text-electric-500', courses: 'text-gold-500', semesters: 'text-emerald-500' }
+const STRUCTURE_BG = { majors: 'bg-electric-500/10', courses: 'bg-gold-500/10', semesters: 'bg-emerald-500/10' }
+const emptySemesterForm = { name: '', school_year: '', semester_number: '1', start_date: '', end_date: '', is_active: false }
+
 function StructureSection() {
   const { t } = useTranslation()
   const [tab, setTab] = useState('majors')
+  const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
-  const [semesterForm, setSemesterForm] = useState({ name: '', school_year: '', semester_number: '1', start_date: '', end_date: '', is_active: false })
+  const [semesterForm, setSemesterForm] = useState(emptySemesterForm)
   const majors = useLoad(() => pedagogiqueApi.majors({ page_size: 100 }), [])
   const courses = useLoad(() => pedagogiqueApi.courses({ page_size: 100 }), [])
   const semesters = useLoad(() => pedagogiqueApi.semesters({ page_size: 100 }), [])
+
+  const dataByTab = { majors: majors, courses: courses, semesters: semesters }
+  const rows = asList(dataByTab[tab].data)
 
   const submit = async event => {
     event.preventDefault()
@@ -226,57 +239,202 @@ function StructureSection() {
       if (tab === 'courses') await pedagogiqueApi.createCourse({ ...form, majors: [] })
       if (tab === 'semesters') await pedagogiqueApi.createSemester({ ...semesterForm, semester_number: Number(semesterForm.semester_number) })
       setForm(emptyForm)
-      setSemesterForm({ name: '', school_year: '', semester_number: '1', start_date: '', end_date: '', is_active: false })
-      majors.reload()
-      courses.reload()
-      semesters.reload()
+      setSemesterForm(emptySemesterForm)
+      setShowForm(false)
+      dataByTab[tab].reload()
       toast.success(t('common.saved'))
     } catch (error) {
       toast.error(apiErrorMessage(error, t('errors.saveFailed')))
     }
   }
 
-  const rows = tab === 'majors' ? asList(majors.data) : tab === 'courses' ? asList(courses.data) : asList(semesters.data)
+  const deleteItem = async id => {
+    try {
+      if (tab === 'majors') await pedagogiqueApi.deleteMajor(id)
+      if (tab === 'courses') await pedagogiqueApi.deleteCourse(id)
+      if (tab === 'semesters') await pedagogiqueApi.deleteSemester(id)
+      dataByTab[tab].reload()
+    } catch (error) {
+      toast.error(apiErrorMessage(error, t('errors.saveFailed')))
+    }
+  }
+
+  const TabIcon = STRUCTURE_ICON[tab]
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-wrap gap-2">
-        {['majors', 'courses', 'semesters'].map(key => (
-          <button key={key} type="button" className={tab === key ? 'btn-primary px-4 py-2' : 'btn-secondary px-4 py-2'} onClick={() => setTab(key)}>
-            {t(`admin.structure.${key}`)}
-          </button>
-        ))}
+    <section className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-black">{t('admin.nav.structure')}</h2>
+          <p className="text-sm text-[var(--color-muted)]">Manage majors, courses, and semesters.</p>
+        </div>
+        <motion.button
+          type="button"
+          className="btn-primary"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => setShowForm(v => !v)}
+        >
+          {showForm ? <X size={16} /> : <Plus size={16} />}
+          {showForm ? 'Cancel' : 'New'}
+        </motion.button>
       </div>
-      <form className="grid gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5 md:grid-cols-3" onSubmit={submit}>
-        {tab !== 'semesters' ? (
-          <>
-            <input className="input-field" placeholder={t('forms.name')} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} required />
-            <input className="input-field" placeholder={t('forms.code')} value={form.code} onChange={event => setForm({ ...form, code: event.target.value })} required />
-            <input className="input-field" placeholder={t('forms.description')} value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} />
-          </>
-        ) : (
-          <>
-            <input className="input-field" placeholder={t('forms.name')} value={semesterForm.name} onChange={event => setSemesterForm({ ...semesterForm, name: event.target.value })} required />
-            <input className="input-field" placeholder={t('forms.schoolYear')} value={semesterForm.school_year} onChange={event => setSemesterForm({ ...semesterForm, school_year: event.target.value })} required />
-            <select className="input-field" value={semesterForm.semester_number} onChange={event => setSemesterForm({ ...semesterForm, semester_number: event.target.value })}>
-              <option value="1">{t('admin.structure.semesterOne')}</option>
-              <option value="2">{t('admin.structure.semesterTwo')}</option>
-            </select>
-            <input className="input-field" type="date" value={semesterForm.start_date} onChange={event => setSemesterForm({ ...semesterForm, start_date: event.target.value })} required />
-            <input className="input-field" type="date" value={semesterForm.end_date} onChange={event => setSemesterForm({ ...semesterForm, end_date: event.target.value })} required />
-            <label className="flex items-center gap-3"><input type="checkbox" checked={semesterForm.is_active} onChange={event => setSemesterForm({ ...semesterForm, is_active: event.target.checked })} /> {t('admin.structure.active')}</label>
-          </>
+
+      {/* Animated tab switcher */}
+      <div className="flex rounded-xl bg-[var(--color-border)]/40 p-1 gap-1">
+        {STRUCTURE_TABS.map(key => {
+          const Icon = STRUCTURE_ICON[key]
+          const count = asList(dataByTab[key].data).length
+          const active = tab === key
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setTab(key)}
+              className="relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-200"
+            >
+              {active && (
+                <motion.div
+                  layoutId="struct-tab-pill"
+                  className="absolute inset-0 rounded-lg bg-[var(--color-surface)] shadow-sm"
+                  transition={{ type: 'spring', bounce: 0.22, duration: 0.38 }}
+                />
+              )}
+              <span className={`relative flex items-center gap-2 ${active ? STRUCTURE_COLOR[key] : 'text-[var(--color-muted)]'}`}>
+                <Icon size={15} />
+                {t(`admin.structure.${key}`)}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${active ? `${STRUCTURE_BG[key]} ${STRUCTURE_COLOR[key]}` : 'bg-[var(--color-border)] text-[var(--color-muted)]'}`}>
+                  {count}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Collapsible create form */}
+      <AnimatePresence initial={false}>
+        {showForm && (
+          <motion.div
+            key="create-form"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.26, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <form
+              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 grid gap-4 md:grid-cols-3 shadow-sm"
+              onSubmit={submit}
+            >
+              <div className="md:col-span-3 flex items-center gap-2 pb-3 border-b border-[var(--color-border)]">
+                <div className={`rounded-lg p-2 ${STRUCTURE_BG[tab]}`}>
+                  <TabIcon size={16} className={STRUCTURE_COLOR[tab]} />
+                </div>
+                <span className="font-bold text-sm">{t(`admin.structure.${tab}`)}</span>
+              </div>
+
+              {tab !== 'semesters' ? (
+                <>
+                  <input className="input-field" placeholder={t('forms.name')} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+                  <input className="input-field" placeholder={t('forms.code')} value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required />
+                  <input className="input-field" placeholder={t('forms.description')} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+                </>
+              ) : (
+                <>
+                  <input className="input-field" placeholder={t('forms.name')} value={semesterForm.name} onChange={e => setSemesterForm({ ...semesterForm, name: e.target.value })} required />
+                  <input className="input-field" placeholder={t('forms.schoolYear')} value={semesterForm.school_year} onChange={e => setSemesterForm({ ...semesterForm, school_year: e.target.value })} required />
+                  <select className="input-field" value={semesterForm.semester_number} onChange={e => setSemesterForm({ ...semesterForm, semester_number: e.target.value })}>
+                    <option value="1">{t('admin.structure.semesterOne')}</option>
+                    <option value="2">{t('admin.structure.semesterTwo')}</option>
+                  </select>
+                  <input className="input-field" type="date" value={semesterForm.start_date} onChange={e => setSemesterForm({ ...semesterForm, start_date: e.target.value })} required />
+                  <input className="input-field" type="date" value={semesterForm.end_date} onChange={e => setSemesterForm({ ...semesterForm, end_date: e.target.value })} required />
+                  <label className="flex items-center gap-3 px-1">
+                    <input type="checkbox" checked={semesterForm.is_active} onChange={e => setSemesterForm({ ...semesterForm, is_active: e.target.checked })} />
+                    <span className="text-sm font-medium">{t('admin.structure.active')}</span>
+                  </label>
+                </>
+              )}
+              <button type="submit" className="btn-primary md:col-span-3">{t('common.save')}</button>
+            </form>
+          </motion.div>
         )}
-        <button type="submit" className="btn-primary md:col-span-3">{t('common.save')}</button>
-      </form>
-      <DataTable
-        rows={rows}
-        columns={[
-          { key: 'name', labelKey: 'tables.name' },
-          { key: 'code', labelKey: 'tables.code', render: row => row.code || row.school_year || '-' },
-          { key: 'description', labelKey: 'tables.description', render: row => row.description || row.semester_number || '-' },
-        ]}
-      />
+      </AnimatePresence>
+
+      {/* Cards grid with tab transition */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.2 }}
+        >
+          {rows.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)]/60 p-14 text-center">
+              <TabIcon size={38} className={`mx-auto mb-3 opacity-30 ${STRUCTURE_COLOR[tab]}`} />
+              <p className="text-[var(--color-muted)] font-medium">{t('common.noData')}</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {rows.map((row, i) => (
+                <motion.div
+                  key={row.id}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.045, duration: 0.24 }}
+                  whileHover={{ y: -3, transition: { duration: 0.15 } }}
+                  className="group relative rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm hover:shadow-md transition-shadow duration-200"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className={`rounded-lg p-2.5 ${STRUCTURE_BG[tab]}`}>
+                      <TabIcon size={18} className={STRUCTURE_COLOR[tab]} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => deleteItem(row.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded-lg p-1.5 text-red-400 hover:bg-red-500/10"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+
+                  <div className="mt-3 space-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-base leading-tight">{row.name}</h3>
+                      {(row.code || row.school_year) && (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${STRUCTURE_BG[tab]} ${STRUCTURE_COLOR[tab]}`}>
+                          {row.code || row.school_year}
+                        </span>
+                      )}
+                      {tab === 'semesters' && (
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${row.is_active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-[var(--color-muted)]'}`}>
+                          {row.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      )}
+                    </div>
+                    {row.description && (
+                      <p className="text-sm text-[var(--color-muted)] line-clamp-2">{row.description}</p>
+                    )}
+                    {tab === 'semesters' && row.start_date && (
+                      <p className="text-xs text-[var(--color-muted)] font-medium">
+                        {formatDate(row.start_date)} → {formatDate(row.end_date)}
+                      </p>
+                    )}
+                    {tab === 'semesters' && row.semester_number && (
+                      <p className="text-xs text-[var(--color-muted)]">
+                        {row.semester_number === 1 ? t('admin.structure.semesterOne') : t('admin.structure.semesterTwo')}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </section>
   )
 }
@@ -300,9 +458,15 @@ function CalendarSection() {
     }
   }
 
+  const priorityDot = { LOW: 'bg-electric-500', MEDIUM: 'bg-gold-500', HIGH: 'bg-orange-500', URGENT: 'bg-red-500' }
+
   return (
-    <section className="grid gap-5 xl:grid-cols-[1fr_360px]">
-      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+    <section className="grid gap-5 xl:grid-cols-[1fr_340px]">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-sm"
+      >
         <FullCalendar
           plugins={[dayGridPlugin, listPlugin]}
           initialView="dayGridMonth"
@@ -311,21 +475,49 @@ function CalendarSection() {
           height="auto"
           events={asList(events.data).map(item => ({ id: item.id, title: item.title, date: item.event_date, backgroundColor: palette[item.priority] }))}
         />
-      </div>
-      <form className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5" onSubmit={submit}>
-        <h2 className="text-xl font-black">{t('admin.calendar.create')}</h2>
-        <input className="input-field" placeholder={t('forms.title')} value={form.title} onChange={event => setForm({ ...form, title: event.target.value })} required />
-        <textarea className="input-field" placeholder={t('forms.description')} value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} />
-        <input className="input-field" type="date" value={form.event_date} onChange={event => setForm({ ...form, event_date: event.target.value })} required />
-        <select className="input-field" value={form.priority} onChange={event => setForm({ ...form, priority: event.target.value })}>
-          {['LOW', 'MEDIUM', 'HIGH', 'URGENT'].map(priority => <option key={priority} value={priority}>{t(`priority.${priority}`)}</option>)}
-        </select>
+      </motion.div>
+
+      <motion.form
+        initial={{ opacity: 0, x: 16 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.1 }}
+        className="space-y-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-sm h-fit"
+        onSubmit={submit}
+      >
+        <div className="flex items-center gap-2 pb-3 border-b border-[var(--color-border)]">
+          <div className="rounded-lg p-2 bg-electric-500/10">
+            <CalendarDays size={16} className="text-electric-500" />
+          </div>
+          <h2 className="font-black text-base">{t('admin.calendar.create')}</h2>
+        </div>
+
+        <div className="space-y-3">
+          <input className="input-field" placeholder={t('forms.title')} value={form.title} onChange={event => setForm({ ...form, title: event.target.value })} required />
+          <textarea className="input-field resize-none" rows={2} placeholder={t('forms.description')} value={form.description} onChange={event => setForm({ ...form, description: event.target.value })} />
+          <input className="input-field" type="date" value={form.event_date} onChange={event => setForm({ ...form, event_date: event.target.value })} required />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {['LOW', 'MEDIUM', 'HIGH', 'URGENT'].map(p => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setForm({ ...form, priority: p })}
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition-all duration-150 ${form.priority === p ? 'border-[var(--color-text)] bg-[var(--color-text)]/5 text-[var(--color-text)]' : 'border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-text)]/30'}`}
+            >
+              <span className={`h-2 w-2 rounded-full ${priorityDot[p]}`} />
+              {t(`priority.${p}`)}
+            </button>
+          ))}
+        </div>
+
         <select className="input-field" value={form.major} onChange={event => setForm({ ...form, major: event.target.value })}>
           <option value="">{t('common.allMajors')}</option>
           {asList(majors.data).map(major => <option key={major.id} value={major.id}>{major.name}</option>)}
         </select>
+
         <button className="btn-primary w-full" type="submit">{t('common.save')}</button>
-      </form>
+      </motion.form>
     </section>
   )
 }
