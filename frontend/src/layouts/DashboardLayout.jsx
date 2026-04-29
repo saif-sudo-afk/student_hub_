@@ -83,9 +83,7 @@ export default function DashboardLayout({ title, navItems, children }) {
           </div>
         </header>
         <div className="p-4 md:p-6">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-            {children}
-          </motion.div>
+          {children}
         </div>
       </main>
     </div>

@@ -65,7 +65,7 @@ export default function App() {
 
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+      <Routes location={location} key={'/' + (location.pathname.split('/')[1] || '')}>
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/auth/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />

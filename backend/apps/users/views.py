@@ -225,6 +225,20 @@ def me(request):
     return Response(UserSerializer(user).data)
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_stats(request):
+    """Public landing page statistics — no authentication required."""
+    from apps.assignments.models import Assignment
+    from apps.pedagogique.models import Major
+    return Response({
+        'total_students': CustomUser.objects.filter(role='STUDENT', is_active=True).count(),
+        'total_professors': CustomUser.objects.filter(role='PROFESSOR', is_active=True).count(),
+        'total_assignments': Assignment.objects.count(),
+        'total_majors': Major.objects.count(),
+    })
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def token_refresh(request):

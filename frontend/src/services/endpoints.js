@@ -1,5 +1,9 @@
 import api from './api'
 
+export const publicApi = {
+  stats: () => api.get('/auth/public-stats/'),
+}
+
 export const authApi = {
   me: () => api.get('/auth/me/'),
   login: payload => api.post('/auth/login/', payload),
