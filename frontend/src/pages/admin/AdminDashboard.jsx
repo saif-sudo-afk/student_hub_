@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -129,18 +129,20 @@ function useLoad(loader, deps = []) {
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const reload = () => {
+  const loaderRef = useRef(loader)
+  loaderRef.current = loader
+
+  const run = useCallback(() => {
     setLoading(true)
-    loader()
-      .then(res => {
-        setData(res.data)
-        setError('')
-      })
-      .catch(err => setError(apiErrorMessage(err, '')))
-      .finally(() => setLoading(false))
-  }
-  useEffect(reload, deps)
-  return { data, error, loading, reload }
+    loaderRef.current()
+      .then(res => { setData(res.data); setError(''); setLoading(false) })
+      .catch(err => { setError(apiErrorMessage(err, '')); setLoading(false) })
+  }, [])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { run() }, deps)
+
+  return { data, error, loading, reload: run }
 }
 
 function Overview() {
@@ -722,17 +724,17 @@ export default function AdminDashboard() {
   const location = useLocation()
   const section = location.pathname.split('/')[2] || 'overview'
 
-  const sectionMap = {
-    overview: <Overview />,
-    users: <UsersSection />,
-    structure: <StructureSection />,
-    calendar: <CalendarSection />,
-    announcements: <AnnouncementsSection />,
-    files: <FilesSection />,
-    settings: <SettingsSection />,
-  }
-
-  const content = sectionMap[section] || <Overview />
+  const content = useMemo(() => {
+    switch (section) {
+      case 'users': return <UsersSection />
+      case 'structure': return <StructureSection />
+      case 'calendar': return <CalendarSection />
+      case 'announcements': return <AnnouncementsSection />
+      case 'files': return <FilesSection />
+      case 'settings': return <SettingsSection />
+      default: return <Overview />
+    }
+  }, [section])
 
   return (
     <DashboardLayout title={t(`admin.nav.${section === 'overview' ? 'overview' : section}`)} navItems={adminNav}>
@@ -742,7 +744,7 @@ export default function AdminDashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.18 }}
         >
           {content}
         </motion.div>

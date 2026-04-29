@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -35,14 +35,20 @@ function asList(data) {
 function useLoad(loader, deps = []) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const reload = () => {
+  const loaderRef = useRef(loader)
+  loaderRef.current = loader
+
+  const run = useCallback(() => {
     setLoading(true)
-    return loader()
+    loaderRef.current()
       .then(res => { setData(res.data); setLoading(false) })
       .catch(() => { setData(null); setLoading(false) })
-  }
-  useEffect(reload, deps)
-  return { data, loading, reload }
+  }, [])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { run() }, deps)
+
+  return { data, loading, reload: run }
 }
 
 function Skeleton({ className = '' }) {
@@ -437,17 +443,17 @@ export default function ProfessorDashboard() {
   const location = useLocation()
   const section = location.pathname.split('/')[2] || 'dashboard'
 
-  const sectionMap = {
-    dashboard: <DashboardHome />,
-    courses: <CoursesSection />,
-    assignments: <AssignmentsSection />,
-    groups: <GroupsSection />,
-    activity: <ActivitySection />,
-    announcements: <AnnouncementsSection />,
-    notifications: <NotificationsSection />,
-  }
-
-  const content = sectionMap[section] || <DashboardHome />
+  const content = useMemo(() => {
+    switch (section) {
+      case 'courses': return <CoursesSection />
+      case 'assignments': return <AssignmentsSection />
+      case 'groups': return <GroupsSection />
+      case 'activity': return <ActivitySection />
+      case 'announcements': return <AnnouncementsSection />
+      case 'notifications': return <NotificationsSection />
+      default: return <DashboardHome />
+    }
+  }, [section])
 
   return (
     <DashboardLayout title={t(`professor.nav.${section}`)} navItems={professorNav}>
@@ -457,7 +463,7 @@ export default function ProfessorDashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.18 }}
         >
           {content}
         </motion.div>

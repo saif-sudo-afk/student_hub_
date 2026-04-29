@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
-import { AnimatePresence } from 'framer-motion'
 import { useAuth } from './context/AuthContext'
 import LandingPage from './pages/landing/LandingPage'
 import {
@@ -64,20 +63,18 @@ export default function App() {
   }, [])
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={'/' + (location.pathname.split('/')[1] || '')}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/auth/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-        <Route path="/auth/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
-        <Route path="/auth/verify-email/:token" element={<VerifyEmailPage />} />
-        <Route path="/auth/password-reset" element={<PasswordResetPage />} />
-        <Route path="/auth/password-reset/confirm/:token" element={<PasswordResetConfirmPage />} />
-        <Route path="/auth/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
-        <Route path="/admin/*" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/professor/*" element={<ProtectedRoute roles={['PROFESSOR']}><ProfessorDashboard /></ProtectedRoute>} />
-        <Route path="/student/*" element={<ProtectedRoute roles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AnimatePresence>
+    <Routes location={location} key={'/' + (location.pathname.split('/')[1] || '')}>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/auth/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+      <Route path="/auth/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+      <Route path="/auth/verify-email/:token" element={<VerifyEmailPage />} />
+      <Route path="/auth/password-reset" element={<PasswordResetPage />} />
+      <Route path="/auth/password-reset/confirm/:token" element={<PasswordResetConfirmPage />} />
+      <Route path="/auth/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
+      <Route path="/admin/*" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/professor/*" element={<ProtectedRoute roles={['PROFESSOR']}><ProfessorDashboard /></ProtectedRoute>} />
+      <Route path="/student/*" element={<ProtectedRoute roles={['STUDENT']}><StudentDashboard /></ProtectedRoute>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }

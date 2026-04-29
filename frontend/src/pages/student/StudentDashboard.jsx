@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -42,14 +42,20 @@ function asList(data) {
 function useLoad(loader, deps = []) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const reload = () => {
+  const loaderRef = useRef(loader)
+  loaderRef.current = loader
+
+  const run = useCallback(() => {
     setLoading(true)
-    return loader()
+    loaderRef.current()
       .then(res => { setData(res.data); setLoading(false) })
       .catch(() => { setData(null); setLoading(false) })
-  }
-  useEffect(reload, deps)
-  return { data, loading, reload }
+  }, [])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { run() }, deps)
+
+  return { data, loading, reload: run }
 }
 
 function Skeleton({ className = '' }) {
@@ -664,17 +670,17 @@ export default function StudentDashboard() {
   const location = useLocation()
   const section = location.pathname.split('/')[2] || 'home'
 
-  const sectionMap = {
-    home: <HomeSection />,
-    assignments: <AssignmentsSection />,
-    groups: <GroupsSection />,
-    announcements: <AnnouncementsSection />,
-    calendar: <CalendarSection />,
-    notifications: <NotificationsSection />,
-    profile: <ProfileSection />,
-  }
-
-  const content = sectionMap[section] || <HomeSection />
+  const content = useMemo(() => {
+    switch (section) {
+      case 'assignments': return <AssignmentsSection />
+      case 'groups': return <GroupsSection />
+      case 'announcements': return <AnnouncementsSection />
+      case 'calendar': return <CalendarSection />
+      case 'notifications': return <NotificationsSection />
+      case 'profile': return <ProfileSection />
+      default: return <HomeSection />
+    }
+  }, [section])
 
   return (
     <DashboardLayout title={t(`student.nav.${section === 'home' ? 'home' : section}`)} navItems={studentNav}>
@@ -684,7 +690,7 @@ export default function StudentDashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.18 }}
         >
           {content}
         </motion.div>
