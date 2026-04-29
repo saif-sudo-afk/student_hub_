@@ -1,7 +1,30 @@
 import axios from 'axios'
 
+function isLocalhostUrl(url) {
+  try {
+    const { hostname } = new URL(url)
+    return hostname === 'localhost' || hostname === '127.0.0.1'
+  } catch {
+    return false
+  }
+}
+
+function isLocalPage() {
+  if (typeof window === 'undefined') return false
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
+
+function apiBaseURL() {
+  const configured = import.meta.env.VITE_API_URL?.trim()
+  if (configured && (!isLocalhostUrl(configured) || isLocalPage())) {
+    return configured
+  }
+  if (isLocalPage()) return 'http://localhost:8000/api/v1'
+  return '/_/backend/api/v1'
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: apiBaseURL(),
   withCredentials: true,
 })
 
