@@ -29,6 +29,25 @@ class LoginViewTests(TestCase):
         self.assertIn('refresh', response.data)
         self.assertEqual(response.data['user']['email'], 'active@example.com')
 
+    def test_active_user_can_login_with_different_email_case(self):
+        CustomUser.objects.create_user(
+            email='mixed.case@example.com',
+            password='correct-password',
+            first_name='Mixed',
+            last_name='Case',
+            is_active=True,
+            is_email_verified=True,
+        )
+
+        response = self.client.post(
+            '/api/v1/auth/login/',
+            {'email': 'Mixed.Case@Example.com', 'password': 'correct-password'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['user']['email'], 'mixed.case@example.com')
+
     def test_inactive_user_with_valid_password_gets_inactive_message(self):
         CustomUser.objects.create_user(
             email='inactive@example.com',

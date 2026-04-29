@@ -2,7 +2,6 @@
 Serializers for user authentication and profile management.
 """
 
-from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from .models import CustomUser, StudentProfile, ProfessorProfile
@@ -54,17 +53,11 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        email = CustomUser.objects.normalize_email(attrs['email'])
+        email = CustomUser.objects.normalize_email(attrs['email']).strip()
         password = attrs['password']
-        user = authenticate(
-            request=self.context.get('request'),
-            email=email,
-            password=password,
-        )
-        if not user:
-            inactive_user = CustomUser.objects.filter(email__iexact=email, is_active=False).first()
-            if inactive_user and inactive_user.check_password(password):
-                raise serializers.ValidationError('Account is not active. Please contact an administrator.')
+
+        user = CustomUser.objects.filter(email__iexact=email).first()
+        if not user or not user.check_password(password):
             raise serializers.ValidationError('Invalid email or password.')
         if not user.is_active:
             raise serializers.ValidationError('Account is not active. Please contact an administrator.')
