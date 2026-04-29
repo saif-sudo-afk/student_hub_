@@ -29,6 +29,25 @@ class LoginViewTests(TestCase):
         self.assertIn('refresh', response.data)
         self.assertEqual(response.data['user']['email'], 'active@example.com')
 
+    def test_active_user_can_login_when_vercel_strips_api_prefix(self):
+        CustomUser.objects.create_user(
+            email='vercel@example.com',
+            password='correct-password',
+            first_name='Vercel',
+            last_name='User',
+            is_active=True,
+            is_email_verified=True,
+        )
+
+        response = self.client.post(
+            '/v1/auth/login/',
+            {'email': 'vercel@example.com', 'password': 'correct-password'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['user']['email'], 'vercel@example.com')
+
     def test_active_user_can_login_with_different_email_case(self):
         CustomUser.objects.create_user(
             email='mixed.case@example.com',
