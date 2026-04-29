@@ -16,11 +16,13 @@ function isLocalPage() {
 
 function apiBaseURL() {
   const configured = import.meta.env.VITE_API_URL?.trim()
-  if (configured && (!isLocalhostUrl(configured) || isLocalPage())) {
-    return configured
+  const localPage = isLocalPage()
+
+  if (localPage) return configured || 'http://localhost:8000/api/v1'
+  if (!configured || isLocalhostUrl(configured) || configured.startsWith('/_/backend/')) {
+    return '/api/v1'
   }
-  if (isLocalPage()) return 'http://localhost:8000/api/v1'
-  return '/_/backend/api/v1'
+  return configured
 }
 
 const api = axios.create({
