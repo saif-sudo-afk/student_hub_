@@ -89,11 +89,20 @@ class StudentRegistrationTests(TestCase):
 class GoogleSocialLoginTests(TestCase):
     def test_google_callback_reverse_uses_single_api_prefix(self):
         from django.urls import reverse
+        from django.urls import set_script_prefix
 
         self.assertEqual(
             reverse('google_callback'),
-            '/api/v1/auth/social/google/login/callback/',
+            '/v1/auth/social/google/login/callback/',
         )
+        try:
+            set_script_prefix('/api/')
+            self.assertEqual(
+                reverse('google_callback'),
+                '/api/v1/auth/social/google/login/callback/',
+            )
+        finally:
+            set_script_prefix('/')
 
     def test_verified_google_login_marks_user_active_and_email_verified(self):
         user = CustomUser(
