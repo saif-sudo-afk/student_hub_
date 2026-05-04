@@ -26,8 +26,32 @@ def config_bool(name, default=False):
 # ─── Security ────────────────────────────────────────────────────────────────
 SECRET_KEY = config('SECRET_KEY', default='change-me-in-production')
 DEBUG = config_bool('DEBUG', default=False)
+
+# Vercel injects VERCEL_PROJECT_PRODUCTION_URL (stable production domain) and
+# VERCEL_URL (per-deployment URL). Use these as automatic fallbacks so the app
+# works even if FRONTEND_URL/CORS/CSRF env vars were never updated from placeholders.
+_VERCEL_PROD_HOST = config('VERCEL_PROJECT_PRODUCTION_URL', default='')  # e.g. student-hub-yrir.vercel.app
+_VERCEL_DEPLOY_HOST = config('VERCEL_URL', default='')                    # e.g. student-hub-yrir-abc123.vercel.app
+_PROD_ORIGIN = f'https://{_VERCEL_PROD_HOST}' if _VERCEL_PROD_HOST else ''
+_DEPLOY_ORIGIN = f'https://{_VERCEL_DEPLOY_HOST}' if _VERCEL_DEPLOY_HOST else ''
+
+def _clean_origin(val):
+    """Return val unless it looks like an unfilled placeholder."""
+    return '' if not val or 'REPLACE_WITH' in val else val.rstrip('/')
+
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv())
+# Always include the Vercel production host so Django doesn't return 400.
+if _VERCEL_PROD_HOST and _VERCEL_PROD_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS = list(ALLOWED_HOSTS) + [_VERCEL_PROD_HOST]
+if _VERCEL_DEPLOY_HOST and _VERCEL_DEPLOY_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS = list(ALLOWED_HOSTS) + [_VERCEL_DEPLOY_HOST]
+
+_csrf_raw = _clean_origin(config('CSRF_TRUSTED_ORIGINS', default=''))
+CSRF_TRUSTED_ORIGINS = [o for o in _csrf_raw.split(',') if o] if _csrf_raw else []
+for _o in [_PROD_ORIGIN, _DEPLOY_ORIGIN]:
+    if _o and _o not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_o)
+
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Vercel's experimentalServices strips the /api routePrefix before forwarding
@@ -182,11 +206,14 @@ SIMPLE_JWT = {
 }
 
 # ─── CORS ────────────────────────────────────────────────────────────────────
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://localhost:3000',
-    cast=Csv(),
-)
+_cors_raw = _clean_origin(config('CORS_ALLOWED_ORIGINS', default=''))
+if _cors_raw:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_raw.split(',') if o.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = ['http://localhost:5173', 'http://localhost:3000']
+for _o in [_PROD_ORIGIN, _DEPLOY_ORIGIN]:
+    if _o and _o not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(_o)
 CORS_ALLOW_CREDENTIALS = True
 
 # ─── Django Allauth / Social Auth ────────────────────────────────────────────
@@ -249,7 +276,7 @@ DEFAULT_FROM_EMAIL = config(
 )
 
 # ─── App URLs ────────────────────────────────────────────────────────────────
-FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')
+FRONTEND_URL = _clean_origin(config('FRONTEND_URL', default='')) or _PROD_ORIGIN or 'http://localhost:5173'
 
 # ─── File Upload Limits ───────────────────────────────────────────────────────
 # 40 MB max upload
