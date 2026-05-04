@@ -12,4 +12,5 @@ urlpatterns = [
     path('password-change/', views.password_change, name='password_change'),
     path('me/', views.me, name='me'),
     path('public-stats/', views.public_stats, name='public_stats'),
+    path('social/complete/', views.social_complete, name='social_complete'),
 ]

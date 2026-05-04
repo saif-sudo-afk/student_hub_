@@ -6,9 +6,10 @@ import secrets
 import string
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from rest_framework import status, generics
+
+from apps.notifications.email import send_email_async
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -129,14 +130,7 @@ def create_professor(request):
             'temp_password': temp_password,
             'login_url': f"{settings.FRONTEND_URL}/auth/login",
         })
-        send_mail(
-            subject='Welcome to Student Hub — Your Professor Account',
-            message='',
-            html_message=html,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+        send_email_async('Welcome to Student Hub — Your Professor Account', html, user.email)
 
     return Response(
         {'detail': 'Professor account created.', 'user': UserSerializer(user).data},

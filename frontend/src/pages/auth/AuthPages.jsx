@@ -82,6 +82,14 @@ export function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('error') === 'oauth_failed') {
+      toast.error(t('errors.loginFailed'))
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [t])
+
   const submit = async event => {
     event.preventDefault()
     setLoading(true)

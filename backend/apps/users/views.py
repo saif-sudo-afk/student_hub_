@@ -5,15 +5,18 @@ Authentication and user management views.
 from datetime import timedelta
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.http import HttpResponseRedirect
 from django.template.loader import render_to_string
 from django.utils import timezone
+from urllib.parse import urlencode
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+
+from apps.notifications.email import send_email_async
 
 from .models import CustomUser, EmailVerificationToken, PasswordResetToken
 from .serializers import (
@@ -150,14 +153,7 @@ def password_reset_request(request):
             'link': reset_url,
         }
         html = render_to_string('emails/notification.html', ctx)
-        send_mail(
-            subject='Student Hub — Password Reset',
-            message='',
-            html_message=html,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+        send_email_async('Student Hub — Password Reset', html, user.email)
 
     return Response({'detail': 'If an account exists with that email, a reset link has been sent.'})
 
@@ -262,3 +258,26 @@ def token_refresh(request):
         return response
     except TokenError as e:
         return Response({'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def social_complete(request):
+    """
+    Post-OAuth callback. Allauth completes the Google flow and lands here
+    via LOGIN_REDIRECT_URL with a Django session. We mint JWT tokens, set
+    httpOnly cookies, and bounce to the SPA with tokens in the URL hash.
+    Tokens in the hash never reach the server (no logs).
+    """
+    user = request.user
+    frontend = settings.FRONTEND_URL.rstrip('/')
+
+    if not user.is_authenticated:
+        params = urlencode({'error': 'oauth_failed'})
+        return HttpResponseRedirect(f"{frontend}/auth/login?{params}")
+
+    tokens = get_tokens_for_user(user)
+    target = f"{frontend}/auth/login#access={tokens['access']}&refresh={tokens['refresh']}"
+    response = HttpResponseRedirect(target)
+    set_auth_cookies(response, tokens)
+    return response

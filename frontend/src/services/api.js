@@ -48,21 +48,30 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
+    const refreshToken = localStorage.getItem('refresh_token')
+    if (!refreshToken || original?.url?.includes('/auth/login/')) {
+      return Promise.reject(error)
+    }
+
     original._retry = true
     refreshPromise ||= api
-      .post('/auth/token/refresh/', {
-        refresh: localStorage.getItem('refresh_token'),
-      })
+      .post('/auth/token/refresh/', { refresh: refreshToken })
       .finally(() => {
         refreshPromise = null
       })
 
-    const { data } = await refreshPromise
-    if (data?.access) {
-      localStorage.setItem('access_token', data.access)
-      original.headers.Authorization = `Bearer ${data.access}`
+    try {
+      const { data } = await refreshPromise
+      if (data?.access) {
+        localStorage.setItem('access_token', data.access)
+        original.headers.Authorization = `Bearer ${data.access}`
+      }
+      return api(original)
+    } catch (refreshError) {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      return Promise.reject(refreshError)
     }
-    return api(original)
   },
 )
 

@@ -21,6 +21,17 @@ export function AuthProvider({ children }) {
   }, [])
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const access = hashParams.get('access')
+      const refresh = hashParams.get('refresh')
+      if (access && refresh) {
+        localStorage.setItem('access_token', access)
+        localStorage.setItem('refresh_token', refresh)
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
+    }
+
     const token = localStorage.getItem('access_token')
     if (token) {
       fetchMe().finally(() => {

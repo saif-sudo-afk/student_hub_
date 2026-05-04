@@ -207,6 +207,17 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+# After successful social login, allauth redirects here. Our view mints
+# JWTs and redirects to the SPA. Both /v1 and /api/v1 prefixes are mounted
+# in config/urls.py; /v1/... is what reaches Django on Vercel (the /api
+# prefix is stripped by the routePrefix).
+LOGIN_REDIRECT_URL = '/v1/auth/social/complete/'
+ACCOUNT_LOGOUT_REDIRECT_URL = config('FRONTEND_URL', default='http://localhost:5173')
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+
 # dj-rest-auth
 REST_AUTH = {
     'USE_JWT': True,
@@ -217,14 +228,16 @@ REST_AUTH = {
     'REGISTER_SERIALIZER': 'apps.users.serializers.StudentRegisterSerializer',
 }
 
-# ─── Email ───────────────────────────────────────────────────────────────────
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Student Hub <noreply@studenthub.com>')
+# ─── Email (Resend) ──────────────────────────────────────────────────────────
+# Outbound email is sent via the Resend HTTP API (apps/notifications/email.py).
+# Django's mail backend is set to console as a safety net for any code path
+# that still calls django.core.mail (no SMTP credentials are used).
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+RESEND_API_KEY = config('RESEND_API_KEY', default='')
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default=config('RESEND_FROM_EMAIL', default='Student Hub <onboarding@resend.dev>'),
+)
 
 # ─── App URLs ────────────────────────────────────────────────────────────────
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:5173')

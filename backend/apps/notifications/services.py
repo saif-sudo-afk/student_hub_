@@ -3,31 +3,10 @@ Notification service layer.
 Creates in-app Notification records and sends HTML emails via threading.
 """
 
-import threading
-from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
+from .email import send_email_async
 from .models import Notification
-
-
-def _send_email_async(subject, html_content, recipient_email):
-    """Send email in a background thread to avoid blocking the request."""
-    def _send():
-        try:
-            send_mail(
-                subject=subject,
-                message='',
-                html_message=html_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[recipient_email],
-                fail_silently=True,
-            )
-        except Exception:
-            pass  # Log in production
-
-    thread = threading.Thread(target=_send)
-    thread.daemon = True
-    thread.start()
 
 
 def notify(recipient, notif_type, title, message, link=None, send_email=True):
@@ -59,7 +38,7 @@ def notify(recipient, notif_type, title, message, link=None, send_email=True):
             'frontend_url': settings.FRONTEND_URL,
         }
         html = render_to_string('emails/notification.html', ctx)
-        _send_email_async(f'Student Hub — {title}', html, recipient.email)
+        send_email_async(f'Student Hub — {title}', html, recipient.email)
 
     return notif
 
