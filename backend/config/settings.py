@@ -54,12 +54,11 @@ for _o in [_PROD_ORIGIN, _DEPLOY_ORIGIN]:
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Vercel's experimentalServices strips the /api routePrefix before forwarding
-# requests to Django, so Django only sees /v1/... paths. But URL *generation*
-# (e.g. allauth's OAuth callback redirect_uri, reverse()) must include /api so
-# that the browser URL Vercel will route back to the backend. Only in production.
-if not DEBUG:
-    FORCE_SCRIPT_NAME = '/api'
+# Vercel strips the /api routePrefix before forwarding requests to Django, so
+# production requests to /api/v1/... arrive here as /v1/.... The /api/v1/...
+# aliases in config/urls.py are intentionally kept for URL generation and local
+# compatibility; setting FORCE_SCRIPT_NAME would double-prefix allauth callback
+# URLs as /api/api/v1/....
 
 # ─── Application definition ───────────────────────────────────────────────────
 DJANGO_APPS = [
