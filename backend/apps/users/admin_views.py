@@ -11,7 +11,7 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from rest_framework import status, generics
 
-from apps.notifications.email import send_email
+from apps.notifications.email import describe_email_settings, send_email, send_email_with_diagnostics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -158,6 +158,28 @@ def create_professor(request):
         {'detail': 'Professor account created.', 'user': UserSerializer(user).data},
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAdmin])
+def email_diagnostics(request):
+    """
+    Admin-only email diagnostics.
+
+    GET returns safe configuration facts. POST sends one test email to the
+    authenticated admin or an explicit `email` payload.
+    """
+    if request.method == 'GET':
+        return Response(describe_email_settings())
+
+    recipient = request.data.get('email') or request.user.email
+    result = send_email_with_diagnostics(
+        'Student Hub - Production email diagnostic',
+        '<p>This is a Student Hub production email diagnostic.</p>',
+        recipient,
+    )
+    status_code = status.HTTP_200_OK if result["sent"] else status.HTTP_503_SERVICE_UNAVAILABLE
+    return Response(result, status=status_code)
 
 
 @api_view(['GET'])

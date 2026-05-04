@@ -231,6 +231,34 @@ class AdminProfessorCreationTests(TestCase):
         self.assertEqual(ProfessorProfile.objects.count(), 0)
         send_email.assert_called_once()
 
+    @patch('apps.users.admin_views.describe_email_settings', return_value={'smtp_configured': True})
+    def test_email_diagnostics_get_returns_safe_config(self, describe_email_settings):
+        self.client.force_authenticate(user=self.admin)
+
+        response = self.client.get('/api/v1/admin/email-diagnostics/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, {'smtp_configured': True})
+        describe_email_settings.assert_called_once()
+
+    @patch('apps.users.admin_views.send_email_with_diagnostics')
+    def test_email_diagnostics_post_sends_test_to_admin(self, send_email_with_diagnostics):
+        send_email_with_diagnostics.return_value = {
+            'sent': True,
+            'backend': 'smtp',
+            'error_type': None,
+            'error': None,
+            'settings': {},
+        }
+        self.client.force_authenticate(user=self.admin)
+
+        response = self.client.post('/api/v1/admin/email-diagnostics/', {}, format='json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data['sent'])
+        send_email_with_diagnostics.assert_called_once()
+        self.assertEqual(send_email_with_diagnostics.call_args.args[2], self.admin.email)
+
 
 class LoginViewTests(TestCase):
     def setUp(self):
