@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from apps.notifications.email import send_email_async
+from apps.notifications.email import send_email, send_email_async
 
 from .models import CustomUser, EmailVerificationToken, PasswordResetToken
 from .serializers import (
@@ -153,7 +153,9 @@ def password_reset_request(request):
             'link': reset_url,
         }
         html = render_to_string('emails/notification.html', ctx)
-        send_email_async('Student Hub — Password Reset', html, user.email)
+        # Synchronous: serverless workers can be torn down after response,
+        # killing daemon threads before Resend is reached.
+        send_email('Student Hub — Password Reset', html, user.email)
 
     return Response({'detail': 'If an account exists with that email, a reset link has been sent.'})
 
@@ -260,16 +262,14 @@ def token_refresh(request):
         return Response({'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-@api_view(['GET'])
-@permission_classes([AllowAny])
 def social_complete(request):
     """
-    Post-OAuth callback. Allauth completes the Google flow and lands here
-    via LOGIN_REDIRECT_URL with a Django session. We mint JWT tokens, set
-    httpOnly cookies, and bounce to the SPA with tokens in the URL hash.
-    Tokens in the hash never reach the server (no logs).
+    Post-OAuth callback. Allauth sets a Django session then redirects here
+    via LOGIN_REDIRECT_URL. This must be a plain Django view (NOT @api_view)
+    so that AuthenticationMiddleware can resolve request.user from the session.
+    DRF's @api_view only checks JWTAuthentication and always sees AnonymousUser.
     """
-    user = request.user
+    user = request.user          # set by AuthenticationMiddleware via session
     frontend = settings.FRONTEND_URL.rstrip('/')
 
     if not user.is_authenticated:

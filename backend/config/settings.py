@@ -268,4 +268,16 @@ LOGGING = {
         'handlers': ['console'],
         'level': 'WARNING',
     },
+    'loggers': {
+        'apps.notifications.email': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'apps.users': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
 }

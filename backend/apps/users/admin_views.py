@@ -9,7 +9,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from rest_framework import status, generics
 
-from apps.notifications.email import send_email_async
+from apps.notifications.email import send_email
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -130,7 +130,7 @@ def create_professor(request):
             'temp_password': temp_password,
             'login_url': f"{settings.FRONTEND_URL}/auth/login",
         })
-        send_email_async('Welcome to Student Hub — Your Professor Account', html, user.email)
+        send_email('Welcome to Student Hub — Your Professor Account', html, user.email)
 
     return Response(
         {'detail': 'Professor account created.', 'user': UserSerializer(user).data},

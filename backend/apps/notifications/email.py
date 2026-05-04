@@ -18,10 +18,19 @@ logger = logging.getLogger(__name__)
 RESEND_ENDPOINT = "https://api.resend.com/emails"
 
 
+def _get_api_key():
+    key = getattr(settings, "RESEND_API_KEY", "") or ""
+    if not key:
+        logger.error(
+            "[Resend] RESEND_API_KEY is empty. "
+            "Set it in your .env (local) and in Vercel environment variables (production)."
+        )
+    return key
+
+
 def _post_resend(payload):
-    api_key = getattr(settings, "RESEND_API_KEY", "") or ""
+    api_key = _get_api_key()
     if not api_key:
-        logger.warning("RESEND_API_KEY not set; skipping email to %s", payload.get("to"))
         return False
 
     body = json.dumps(payload).encode("utf-8")
@@ -37,8 +46,9 @@ def _post_resend(payload):
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             if 200 <= resp.status < 300:
+                logger.info("[Resend] email sent to %s subject=%r", payload.get("to"), payload.get("subject"))
                 return True
-            logger.error("Resend error: status=%s", resp.status)
+            logger.error("[Resend] unexpected status=%s to=%s", resp.status, payload.get("to"))
             return False
     except urllib.error.HTTPError as exc:
         detail = ""
@@ -46,10 +56,10 @@ def _post_resend(payload):
             detail = exc.read().decode("utf-8", errors="replace")[:500]
         except Exception:
             pass
-        logger.error("Resend HTTPError %s: %s", exc.code, detail)
+        logger.error("[Resend] HTTPError %s to=%s body=%s", exc.code, payload.get("to"), detail)
         return False
     except Exception as exc:
-        logger.exception("Resend send failed: %s", exc)
+        logger.exception("[Resend] send failed to=%s: %s", payload.get("to"), exc)
         return False
 
 
