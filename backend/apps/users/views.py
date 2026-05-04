@@ -165,7 +165,7 @@ def password_reset_request(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     email = serializer.validated_data['email']
-    user = CustomUser.objects.filter(email=email).first()
+    user = CustomUser.objects.filter(email__iexact=email).first()
 
     # Always return 200 to prevent email enumeration
     if user:

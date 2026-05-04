@@ -86,6 +86,47 @@ class StudentRegistrationTests(TestCase):
         self.assertFalse(EmailVerificationToken.objects.filter(user=user).exists())
 
 
+class PasswordResetTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    @override_settings(FRONTEND_URL='http://frontend.test')
+    @patch('apps.users.views.send_email', return_value=True)
+    def test_password_reset_email_lookup_is_case_insensitive(self, send_email):
+        user = CustomUser.objects.create_user(
+            email='reset.case@example.com',
+            password='correct-password',
+            first_name='Reset',
+            last_name='User',
+            is_active=True,
+            is_email_verified=True,
+        )
+
+        response = self.client.post(
+            '/api/v1/auth/password-reset/',
+            {'email': 'Reset.Case@Example.com'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        send_email.assert_called_once()
+        subject, html, recipient = send_email.call_args.args
+        self.assertEqual(subject, 'Student Hub — Password Reset')
+        self.assertEqual(recipient, user.email)
+        self.assertIn('http://frontend.test/auth/password-reset/confirm/', html)
+
+    @patch('apps.users.views.send_email', return_value=True)
+    def test_password_reset_does_not_send_for_unknown_email(self, send_email):
+        response = self.client.post(
+            '/api/v1/auth/password-reset/',
+            {'email': 'missing@example.com'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        send_email.assert_not_called()
+
+
 class GoogleSocialLoginTests(TestCase):
     def test_google_callback_reverse_uses_single_api_prefix(self):
         from django.urls import reverse
