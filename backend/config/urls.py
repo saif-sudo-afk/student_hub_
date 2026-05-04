@@ -23,6 +23,7 @@ urlpatterns = [
     path('v1/assignments/', include('apps.assignments.urls')),
     path('v1/notifications/', include('apps.notifications.urls')),
     path('v1/auth/social/', include('allauth.socialaccount.urls')),
+    path('v1/auth/social/', include('allauth.socialaccount.providers.google.urls')),
 
     # Local and backwards-compatible API routes
     path('api/v1/auth/', include('apps.users.urls')),
@@ -33,6 +34,7 @@ urlpatterns = [
     path('api/v1/assignments/', include('apps.assignments.urls')),
     path('api/v1/notifications/', include('apps.notifications.urls')),
     path('api/v1/auth/social/', include('allauth.socialaccount.urls')),
+    path('api/v1/auth/social/', include('allauth.socialaccount.providers.google.urls')),
 ]
 
 if settings.DEBUG:
