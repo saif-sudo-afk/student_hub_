@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import toast from 'react-hot-toast'
 
@@ -8,6 +9,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [initialized, setInitialized] = useState(false)
+  const navigate = useNavigate()
 
   const fetchMe = useCallback(async () => {
     try {
@@ -52,7 +54,7 @@ export function AuthProvider({ children }) {
     return data.user
   }
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await api.post('/auth/logout/', { refresh: localStorage.getItem('refresh_token') })
     } catch {
@@ -61,7 +63,17 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     setUser(null)
-  }
+  }, [])
+
+  // When api.js clears tokens after refresh failure, clear user state and go to login.
+  useEffect(() => {
+    const handler = () => {
+      setUser(null)
+      navigate('/auth/login', { replace: true })
+    }
+    window.addEventListener('auth:logout', handler)
+    return () => window.removeEventListener('auth:logout', handler)
+  }, [navigate, logout])
 
   const updateUser = (updated) => {
     setUser(prev => ({ ...prev, ...updated }))

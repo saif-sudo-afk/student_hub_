@@ -2,6 +2,7 @@
 Authentication and user management views.
 """
 
+import logging
 from datetime import timedelta
 
 from django.conf import settings
@@ -17,6 +18,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
 from apps.notifications.email import send_email, send_email_async
+
+logger = logging.getLogger(__name__)
 
 from .models import CustomUser, EmailVerificationToken, PasswordResetToken
 from .serializers import (
@@ -155,7 +158,9 @@ def password_reset_request(request):
         html = render_to_string('emails/notification.html', ctx)
         # Synchronous: serverless workers can be torn down after response,
         # killing daemon threads before Resend is reached.
-        send_email('Student Hub — Password Reset', html, user.email)
+        sent = send_email('Student Hub — Password Reset', html, user.email)
+        if not sent:
+            logger.error('Password reset email failed to send to %s', user.email)
 
     return Response({'detail': 'If an account exists with that email, a reset link has been sent.'})
 

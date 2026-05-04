@@ -51,8 +51,11 @@ def list_users(request):
         ) | qs.filter(last_name__icontains=search) | qs.filter(email__icontains=search)
 
     # Pagination
-    page = int(request.query_params.get('page', 1))
-    page_size = int(request.query_params.get('page_size', 20))
+    try:
+        page = max(1, int(request.query_params.get('page', 1)))
+        page_size = min(100, max(1, int(request.query_params.get('page_size', 20))))
+    except (ValueError, TypeError):
+        page, page_size = 1, 20
     start = (page - 1) * page_size
     end = start + page_size
     total = qs.count()
@@ -147,8 +150,11 @@ def student_profiles(request):
     if major_id:
         qs = qs.filter(major_id=major_id)
 
-    page = int(request.query_params.get('page', 1))
-    page_size = int(request.query_params.get('page_size', 20))
+    try:
+        page = max(1, int(request.query_params.get('page', 1)))
+        page_size = min(100, max(1, int(request.query_params.get('page_size', 20))))
+    except (ValueError, TypeError):
+        page, page_size = 1, 20
     start = (page - 1) * page_size
     total = qs.count()
 

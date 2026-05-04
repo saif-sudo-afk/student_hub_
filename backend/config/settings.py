@@ -30,6 +30,13 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv(
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv())
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Vercel's experimentalServices strips the /api routePrefix before forwarding
+# requests to Django, so Django only sees /v1/... paths. But URL *generation*
+# (e.g. allauth's OAuth callback redirect_uri, reverse()) must include /api so
+# that the browser URL Vercel will route back to the backend. Only in production.
+if not DEBUG:
+    FORCE_SCRIPT_NAME = '/api'
+
 # ─── Application definition ───────────────────────────────────────────────────
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -211,7 +218,9 @@ SOCIALACCOUNT_PROVIDERS = {
 # JWTs and redirects to the SPA. Both /v1 and /api/v1 prefixes are mounted
 # in config/urls.py; /v1/... is what reaches Django on Vercel (the /api
 # prefix is stripped by the routePrefix).
-LOGIN_REDIRECT_URL = '/v1/auth/social/complete/'
+# /api prefix is required: Vercel only routes /api/... to the backend.
+# Without it the browser lands on the React SPA (which has no such route).
+LOGIN_REDIRECT_URL = '/api/v1/auth/social/complete/'
 ACCOUNT_LOGOUT_REDIRECT_URL = config('FRONTEND_URL', default='http://localhost:5173')
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = True

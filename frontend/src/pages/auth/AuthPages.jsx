@@ -241,11 +241,19 @@ export function PasswordResetPage() {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const submit = async event => {
     event.preventDefault()
-    await authApi.passwordReset({ email })
-    setSent(true)
+    setLoading(true)
+    try {
+      await authApi.passwordReset({ email })
+      setSent(true)
+    } catch (error) {
+      toast.error(apiErrorMessage(error, t('errors.loginFailed')))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -254,7 +262,9 @@ export function PasswordResetPage() {
         <Field label={t('forms.email')}>
           <input className="input-field" type="email" value={email} onChange={event => setEmail(event.target.value)} required />
         </Field>
-        <button className="btn-primary w-full" type="submit">{t('auth.sendReset')}</button>
+        <button className="btn-primary w-full" type="submit" disabled={loading || sent}>
+          {loading ? t('common.loading') : t('auth.sendReset')}
+        </button>
       </form>
     </AuthShell>
   )
@@ -265,15 +275,23 @@ export function PasswordResetConfirmPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [form, setForm] = useState({ new_password: '', confirm_password: '' })
+  const [loading, setLoading] = useState(false)
 
   const submit = async event => {
     event.preventDefault()
+    if (form.new_password !== form.confirm_password) {
+      toast.error(t('errors.passwordMismatch'))
+      return
+    }
+    setLoading(true)
     try {
       await authApi.passwordResetConfirm({ token, ...form })
       toast.success(t('auth.passwordChanged'))
       navigate('/auth/login')
     } catch (error) {
       toast.error(apiErrorMessage(error, t('errors.saveFailed')))
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -286,7 +304,9 @@ export function PasswordResetConfirmPage() {
         <Field label={t('forms.confirmPassword')}>
           <PasswordInput value={form.confirm_password} onChange={event => setForm({ ...form, confirm_password: event.target.value })} />
         </Field>
-        <button className="btn-primary w-full" type="submit">{t('auth.changePassword')}</button>
+        <button className="btn-primary w-full" type="submit" disabled={loading}>
+          {loading ? t('common.loading') : t('auth.changePassword')}
+        </button>
       </form>
     </AuthShell>
   )
@@ -297,9 +317,15 @@ export function ChangePasswordPage() {
   const navigate = useNavigate()
   const { fetchMe } = useAuth()
   const [form, setForm] = useState({ old_password: '', new_password: '', confirm_password: '' })
+  const [loading, setLoading] = useState(false)
 
   const submit = async event => {
     event.preventDefault()
+    if (form.new_password !== form.confirm_password) {
+      toast.error(t('errors.passwordMismatch'))
+      return
+    }
+    setLoading(true)
     try {
       await authApi.passwordChange(form)
       const user = await fetchMe()
@@ -307,6 +333,8 @@ export function ChangePasswordPage() {
       navigate(redirectFor(user), { replace: true })
     } catch (error) {
       toast.error(apiErrorMessage(error, t('errors.saveFailed')))
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -322,7 +350,9 @@ export function ChangePasswordPage() {
         <Field label={t('forms.confirmPassword')}>
           <PasswordInput value={form.confirm_password} onChange={event => setForm({ ...form, confirm_password: event.target.value })} />
         </Field>
-        <button className="btn-primary w-full" type="submit">{t('auth.changePassword')}</button>
+        <button className="btn-primary w-full" type="submit" disabled={loading}>
+          {loading ? t('common.loading') : t('auth.changePassword')}
+        </button>
       </form>
     </AuthShell>
   )

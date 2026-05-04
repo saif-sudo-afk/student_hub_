@@ -70,6 +70,8 @@ api.interceptors.response.use(
     } catch (refreshError) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
+      // Notify AuthContext so it clears user state and redirects to login.
+      window.dispatchEvent(new CustomEvent('auth:logout'))
       return Promise.reject(refreshError)
     }
   },
