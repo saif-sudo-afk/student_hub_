@@ -264,16 +264,24 @@ REST_AUTH = {
     'REGISTER_SERIALIZER': 'apps.users.serializers.StudentRegisterSerializer',
 }
 
-# ─── Email (Resend) ──────────────────────────────────────────────────────────
-# Outbound email is sent via the Resend HTTP API (apps/notifications/email.py).
-# Django's mail backend is set to console as a safety net for any code path
-# that still calls django.core.mail (no SMTP credentials are used).
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# ─── Email ───────────────────────────────────────────────────────────────────
+# apps/notifications/email.py tries Resend first, then falls back to SMTP.
+# Set RESEND_API_KEY for Resend, or EMAIL_HOST_USER + EMAIL_HOST_PASSWORD for
+# Gmail SMTP (generate a Gmail App Password at myaccount.google.com/apppasswords).
 RESEND_API_KEY = config('RESEND_API_KEY', default='')
-DEFAULT_FROM_EMAIL = config(
-    'DEFAULT_FROM_EMAIL',
-    default=config('RESEND_FROM_EMAIL', default='Student Hub <onboarding@resend.dev>'),
+
+_smtp_user = config('EMAIL_HOST_USER', default='')
+EMAIL_BACKEND = (
+    'django.core.mail.backends.smtp.EmailBackend'
+    if _smtp_user else
+    'django.core.mail.backends.console.EmailBackend'
 )
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = _smtp_user
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=f'Student Hub <{_smtp_user}>' if _smtp_user else 'Student Hub <onboarding@resend.dev>')
 
 # ─── App URLs ────────────────────────────────────────────────────────────────
 FRONTEND_URL = _clean_origin(config('FRONTEND_URL', default='')) or _PROD_ORIGIN or 'http://localhost:5173'
