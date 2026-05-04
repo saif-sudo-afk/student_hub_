@@ -6,6 +6,7 @@ import logging
 from datetime import timedelta
 
 from django.conf import settings
+from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -17,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from apps.notifications.email import send_email, send_email_async
+from apps.notifications.email import send_email
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,10 @@ from .serializers import (
     UserSerializer,
     UserUpdateSerializer,
 )
+
+
+class EmailDeliveryError(Exception):
+    pass
 
 
 def get_tokens_for_user(user):
@@ -69,10 +74,27 @@ def register_student(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    serializer.save()
+    try:
+        with transaction.atomic():
+            user = serializer.save()
+            token_obj = EmailVerificationToken.objects.create(user=user)
+            verification_url = f"{settings.FRONTEND_URL}/auth/verify-email/{token_obj.token}"
+            html = render_to_string('emails/verification.html', {
+                'first_name': user.first_name,
+                'verification_url': verification_url,
+            })
+            sent = send_email('Student Hub - Verify your email', html, user.email)
+            if not sent:
+                raise EmailDeliveryError
+    except EmailDeliveryError:
+        logger.error('Student verification email failed to send to %s', serializer.validated_data.get('email'))
+        return Response(
+            {'detail': 'Registration could not send the verification email. Please try again later.'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
 
     return Response(
-        {'detail': 'Registration successful. You can now log in.'},
+        {'detail': 'Registration successful. Check your email to verify your account.'},
         status=status.HTTP_201_CREATED,
     )
 

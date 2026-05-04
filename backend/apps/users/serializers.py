@@ -21,6 +21,12 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
             'password', 'confirm_password', 'major_id', 'year_of_study', 'agree_terms',
         ]
 
+    def validate_email(self, value):
+        email = CustomUser.objects.normalize_email(value).strip()
+        if CustomUser.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError('A user with this email already exists.')
+        return email
+
     def validate(self, attrs):
         if attrs['password'] != attrs.pop('confirm_password'):
             raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
@@ -36,8 +42,8 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
 
         user = CustomUser.objects.create(
             role=CustomUser.STUDENT,
-            is_active=True,
-            is_email_verified=True,
+            is_active=False,
+            is_email_verified=False,
             **validated_data,
         )
         user.set_password(password)
