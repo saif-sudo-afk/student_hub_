@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   Megaphone,
   Plus,
-  Settings,
   Trash2,
   Users,
   X,
@@ -106,8 +105,9 @@ const adminNav = [
   { to: '/admin/calendar', labelKey: 'admin.nav.calendar', icon: CalendarDays },
   { to: '/admin/announcements', labelKey: 'admin.nav.announcements', icon: Megaphone },
   { to: '/admin/files', labelKey: 'admin.nav.files', icon: FileSearch },
-  { to: '/admin/settings', labelKey: 'admin.nav.settings', icon: Settings },
 ]
+
+const adminSections = new Set(['overview', 'users', 'structure', 'calendar', 'announcements', 'files'])
 
 const emptyForm = { name: '', code: '', description: '' }
 
@@ -709,20 +709,11 @@ function FilesSection() {
   )
 }
 
-function SettingsSection() {
-  const { t } = useTranslation()
-  return (
-    <section className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-      <h2 className="text-2xl font-black">{t('admin.settings.title')}</h2>
-      <p className="mt-2 text-[var(--color-muted)]">{t('admin.settings.body')}</p>
-    </section>
-  )
-}
-
 export default function AdminDashboard() {
   const { t } = useTranslation()
   const location = useLocation()
-  const section = location.pathname.split('/')[2] || 'overview'
+  const requestedSection = location.pathname.split('/')[2] || 'overview'
+  const section = adminSections.has(requestedSection) ? requestedSection : 'overview'
 
   const content = useMemo(() => {
     switch (section) {
@@ -731,7 +722,6 @@ export default function AdminDashboard() {
       case 'calendar': return <CalendarSection />
       case 'announcements': return <AnnouncementsSection />
       case 'files': return <FilesSection />
-      case 'settings': return <SettingsSection />
       default: return <Overview />
     }
   }, [section])

@@ -223,8 +223,7 @@
       "structure": "Structure pédagogique",
       "calendar": "Calendrier académique",
       "announcements": "Annonces",
-      "files": "Suivi des fichiers",
-      "settings": "Paramètres"
+      "files": "Suivi des fichiers"
     },
     "stats": {
       "students": "Total étudiants",
@@ -262,10 +261,6 @@
     },
     "files": {
       "title": "Suivi des fichiers et de l'activité professeur"
-    },
-    "settings": {
-      "title": "Paramètres institutionnels",
-      "body": "Les paramètres d'environnement, CORS, stockage, SMTP et OAuth sont gérés par les variables d'environnement du déploiement."
     }
   },
   "professor": {

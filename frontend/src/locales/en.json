@@ -223,8 +223,7 @@
       "structure": "Pedagogique Structure",
       "calendar": "Academic Calendar",
       "announcements": "Announcements",
-      "files": "File Monitor",
-      "settings": "Settings"
+      "files": "File Monitor"
     },
     "stats": {
       "students": "Total Students",
@@ -262,10 +261,6 @@
     },
     "files": {
       "title": "File and professor activity monitor"
-    },
-    "settings": {
-      "title": "Institution settings",
-      "body": "Core environment, CORS, storage, SMTP, and OAuth settings are controlled through deployment environment variables."
     }
   },
   "professor": {
