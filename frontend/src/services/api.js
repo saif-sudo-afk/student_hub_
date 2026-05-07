@@ -66,6 +66,9 @@ api.interceptors.response.use(
         localStorage.setItem('access_token', data.access)
         original.headers.Authorization = `Bearer ${data.access}`
       }
+      if (data?.refresh) {
+        localStorage.setItem('refresh_token', data.refresh)
+      }
       return api(original)
     } catch (refreshError) {
       localStorage.removeItem('access_token')

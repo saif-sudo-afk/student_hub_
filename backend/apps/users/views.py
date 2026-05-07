@@ -108,6 +108,10 @@ def verify_email(request, token):
     except EmailVerificationToken.DoesNotExist:
         return Response({'detail': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    if timezone.now() > token_obj.created_at + timedelta(hours=48):
+        token_obj.delete()
+        return Response({'detail': 'Verification link has expired. Please register again.'}, status=status.HTTP_400_BAD_REQUEST)
+
     user = token_obj.user
     user.is_active = True
     user.is_email_verified = True
@@ -276,13 +280,32 @@ def token_refresh(request):
     try:
         token = RefreshToken(refresh_token)
         access = str(token.access_token)
-        response = Response({'access': access})
+
+        # Rotate refresh token to honour ROTATE_REFRESH_TOKENS / BLACKLIST_AFTER_ROTATION
+        if settings.SIMPLE_JWT.get('ROTATE_REFRESH_TOKENS', False):
+            if settings.SIMPLE_JWT.get('BLACKLIST_AFTER_ROTATION', False):
+                token.blacklist()
+            token.set_jti()
+            token.set_exp()
+            token.set_iat()
+        new_refresh = str(token)
+
+        response = Response({'access': access, 'refresh': new_refresh})
         response.set_cookie(
             key=settings.SIMPLE_JWT['AUTH_COOKIE'],
             value=access,
-            httponly=True,
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
             secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
             samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            max_age=int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds()),
+        )
+        response.set_cookie(
+            key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+            value=new_refresh,
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            max_age=int(settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds()),
         )
         return response
     except TokenError as e:

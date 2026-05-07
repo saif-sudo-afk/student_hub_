@@ -66,6 +66,8 @@ class LoginSerializer(serializers.Serializer):
         if not user or not user.check_password(password):
             raise serializers.ValidationError('Invalid email or password.')
         if not user.is_active:
+            if not user.is_email_verified:
+                raise serializers.ValidationError('Account not verified. Please check your email and click the verification link.')
             raise serializers.ValidationError('Account is not active. Please contact an administrator.')
         attrs['user'] = user
         return attrs
