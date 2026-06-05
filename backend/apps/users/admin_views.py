@@ -9,17 +9,15 @@ import string
 from django.conf import settings
 from django.db import transaction
 from django.template.loader import render_to_string
-from rest_framework import status, generics
+from rest_framework import status
 
 from apps.notifications.email import describe_email_settings, send_email, send_email_with_diagnostics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
 
 from .models import CustomUser, StudentProfile, ProfessorProfile
 from .serializers import UserSerializer, CreateProfessorSerializer, StudentProfileSerializer
-from .permissions import IsAdmin
+from .permissions import IsAdmin, IsAdminOrProfessor
 from apps.pedagogique.models import Major
 
 
@@ -183,10 +181,14 @@ def email_diagnostics(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAdmin])
+@permission_classes([IsAdminOrProfessor])
 def student_profiles(request):
     """List all student profiles with stats."""
     qs = StudentProfile.objects.select_related('user', 'major').order_by('-activity_score')
+
+    if request.user.role == CustomUser.PROFESSOR:
+        qs = qs.filter(major__in=request.user.professor_profile.majors.all())
+
     major_id = request.query_params.get('major')
     if major_id:
         qs = qs.filter(major_id=major_id)

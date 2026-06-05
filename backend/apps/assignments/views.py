@@ -3,6 +3,7 @@ Views for assignments, submissions, groups, and student notices.
 """
 
 from django.utils import timezone
+from django.db import transaction
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated
@@ -24,11 +25,17 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticated()]
+        if self.action == 'submit':
+            return [IsStudent()]
+        if self.action in ('review', 'non_submitters'):
+            return [IsProfessor()]
+        if self.action == 'submissions':
+            return [IsAdminOrProfessor()]
         return [IsProfessor()]
 
     def get_queryset(self):
         user = self.request.user
-        qs = Assignment.objects.prefetch_related('files', 'majors').select_related(
+        qs = Assignment.objects.prefetch_related('files', 'majors', 'submissions').select_related(
             'professor__user', 'course'
         )
         if user.role == 'STUDENT':
@@ -41,12 +48,12 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             qs = qs.filter(professor=user.professor_profile)
         return qs.order_by('-created_at')
 
-    def perform_create(self, serializer):
-        assignment = serializer.save()
+    def _notify_assignment_students(self, assignment):
         # Notify all students in the relevant majors
         from apps.users.models import CustomUser
         students = CustomUser.objects.filter(
             role='STUDENT',
+            is_active=True,
             student_profile__major__in=assignment.majors.all(),
         )
         notify_many(
@@ -56,6 +63,10 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             message=f'{assignment.professor.user.get_full_name()} posted a new {assignment.type} assignment: "{assignment.title}". Deadline: {assignment.deadline.strftime("%Y-%m-%d %H:%M")}.',
             link=f'/student/assignments',
         )
+
+    def perform_create(self, serializer):
+        assignment = serializer.save()
+        self._notify_assignment_students(assignment)
 
     @action(detail=True, methods=['post'], permission_classes=[IsStudent])
     def submit(self, request, pk=None):
@@ -75,20 +86,22 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         if not files:
             return Response({'detail': 'At least one file is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        submission = Submission.objects.create(
-            assignment=assignment,
-            student=student,
-            status=Submission.PENDING,
-        )
-        for f in files:
-            file_type = validate_uploaded_file(f)
-            SubmissionFile.objects.create(
-                submission=submission,
-                file=f,
-                original_filename=f.name,
-                file_type=file_type,
-                file_size=f.size,
+        validated_files = [(f, validate_uploaded_file(f)) for f in files]
+
+        with transaction.atomic():
+            submission = Submission.objects.create(
+                assignment=assignment,
+                student=student,
+                status=Submission.PENDING,
             )
+            for f, file_type in validated_files:
+                SubmissionFile.objects.create(
+                    submission=submission,
+                    file=f,
+                    original_filename=f.name,
+                    file_type=file_type,
+                    file_size=f.size,
+                )
 
         # Notify professor
         notify(
@@ -203,19 +216,21 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        assignment = serializer.save()
-
-        # Handle file uploads
         files = request.FILES.getlist('files')
-        for f in files:
-            file_type = validate_uploaded_file(f)
-            AssignmentFile.objects.create(
-                assignment=assignment,
-                file=f,
-                original_filename=f.name,
-                file_type=file_type,
-                file_size=f.size,
-            )
+        validated_files = [(f, validate_uploaded_file(f)) for f in files]
+
+        with transaction.atomic():
+            assignment = serializer.save()
+            for f, file_type in validated_files:
+                AssignmentFile.objects.create(
+                    assignment=assignment,
+                    file=f,
+                    original_filename=f.name,
+                    file_type=file_type,
+                    file_size=f.size,
+                )
+
+        self._notify_assignment_students(assignment)
 
         return Response(AssignmentSerializer(assignment).data, status=status.HTTP_201_CREATED)
 
@@ -226,6 +241,8 @@ class ProjectGroupViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticated()]
+        if self.action == 'submit_link':
+            return [IsStudent()]
         return [IsProfessor()]
 
     def get_queryset(self):
@@ -241,7 +258,7 @@ class ProjectGroupViewSet(viewsets.ModelViewSet):
                 return qs.none()
         elif user.role == 'PROFESSOR':
             qs = qs.filter(assignment__professor=user.professor_profile)
-        return qs
+        return qs.order_by('-created_at')
 
     def perform_create(self, serializer):
         group = serializer.save()

@@ -18,13 +18,29 @@ class MajorViewSet(viewsets.ModelViewSet):
 
 
 class CourseViewSet(viewsets.ModelViewSet):
-    queryset = Course.objects.prefetch_related('majors', 'professors__user').all()
     serializer_class = CourseSerializer
 
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticated()]
         return [IsAdmin()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Course.objects.prefetch_related('majors', 'professors__user')
+        if not user.is_authenticated:
+            return qs.none()
+        if user.role == 'STUDENT':
+            try:
+                return qs.filter(majors=user.student_profile.major).distinct()
+            except Exception:
+                return qs.none()
+        if user.role == 'PROFESSOR':
+            try:
+                return qs.filter(professors=user.professor_profile).distinct()
+            except Exception:
+                return qs.none()
+        return qs.all()
 
     @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
     def assign_professor(self, request, pk=None):

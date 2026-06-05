@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   BarChart3, Bell, BookOpen, FileText,
-  FolderKanban, Home, Megaphone, Send, Users,
+  FolderKanban, Home, Megaphone, Users,
 } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import toast from 'react-hot-toast'
@@ -82,6 +82,9 @@ function DashboardHome() {
     name: item.title?.slice(0, 14) + (item.title?.length > 14 ? '…' : ''),
     submissions: item.submissions_count || 0,
   }))
+  const pendingSubmissions = rows.reduce((total, item) => total + (item.pending_submissions_count || 0), 0)
+  const approvedSubmissions = rows.reduce((total, item) => total + (item.approved_submissions_count || 0), 0)
+  const rejectedSubmissions = rows.reduce((total, item) => total + (item.rejected_submissions_count || 0), 0)
 
   return (
     <div className="space-y-6">
@@ -95,9 +98,9 @@ function DashboardHome() {
       ) : (
         <div className="grid gap-4 md:grid-cols-4">
           <StatCard label={t('professor.stats.active')} value={rows.length} icon={FileText} accent="text-electric-500" bg="bg-electric-500/10" />
-          <StatCard label={t('professor.stats.pending')} value={rows.filter(r => r.status === 'PENDING').length} icon={Bell} accent="text-amber-500" bg="bg-amber-500/10" />
-          <StatCard label={t('professor.stats.approved')} value={rows.filter(r => r.status === 'APPROVED').length} icon={Users} accent="text-emerald-500" bg="bg-emerald-500/10" />
-          <StatCard label={t('professor.stats.rejected')} value={rows.filter(r => r.status === 'REJECTED').length} icon={Megaphone} accent="text-red-500" bg="bg-red-500/10" />
+          <StatCard label={t('professor.stats.pending')} value={pendingSubmissions} icon={Bell} accent="text-amber-500" bg="bg-amber-500/10" />
+          <StatCard label={t('professor.stats.approved')} value={approvedSubmissions} icon={Users} accent="text-emerald-500" bg="bg-emerald-500/10" />
+          <StatCard label={t('professor.stats.rejected')} value={rejectedSubmissions} icon={Megaphone} accent="text-red-500" bg="bg-red-500/10" />
         </div>
       )}
 
@@ -280,12 +283,110 @@ function AssignmentsSection() {
   )
 }
 
-function GroupsSection() {
+function GroupCreateForm({ onCreated }) {
   const { t } = useTranslation()
+  const assignments = useLoad(() => assignmentsApi.list({ page_size: 100 }), [])
+  const students = useLoad(() => adminApi.studentProfiles({ page_size: 100 }), [])
+  const [form, setForm] = useState({ assignment: '', name: '', leader: '', members: [] })
+
+  const projectAssignments = asList(assignments.data).filter(item => item.is_group_work)
+  const studentRows = asList(students.data)
+
+  const submit = async event => {
+    event.preventDefault()
+    const members = Array.from(new Set([form.leader, ...form.members].filter(Boolean)))
+    try {
+      await assignmentsApi.createGroup({
+        assignment: form.assignment,
+        name: form.name,
+        leader: form.leader || null,
+        members,
+      })
+      setForm({ assignment: '', name: '', leader: '', members: [] })
+      onCreated?.()
+      toast.success(t('common.saved'))
+    } catch (error) {
+      toast.error(apiErrorMessage(error, t('errors.saveFailed')))
+    }
+  }
+
+  return (
+    <form className="space-y-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5" onSubmit={submit}>
+      <h3 className="font-black text-sm border-b border-[var(--color-border)] pb-3 mb-4">
+        {t('professor.groups.create')}
+      </h3>
+      <input
+        className="input-field"
+        placeholder={t('tables.group')}
+        value={form.name}
+        onChange={e => setForm({ ...form, name: e.target.value })}
+        required
+      />
+      <select
+        className="input-field"
+        value={form.assignment}
+        onChange={e => setForm({ ...form, assignment: e.target.value })}
+        required
+      >
+        <option value="">{t('professor.nav.assignments')}</option>
+        {projectAssignments.map(assignment => (
+          <option key={assignment.id} value={assignment.id}>{assignment.title}</option>
+        ))}
+      </select>
+      <select
+        className="input-field"
+        value={form.leader}
+        onChange={e => setForm({ ...form, leader: e.target.value })}
+        required
+      >
+        <option value="">{t('tables.leader')}</option>
+        {studentRows.map(student => (
+          <option key={student.id} value={student.id}>
+            {student.student_name || student.student_email || student.id}
+          </option>
+        ))}
+      </select>
+      <select
+        className="input-field min-h-[7rem]"
+        multiple
+        value={form.members}
+        onChange={e => setForm({
+          ...form,
+          members: Array.from(e.target.selectedOptions).map(option => option.value),
+        })}
+      >
+        {studentRows.map(student => (
+          <option key={student.id} value={student.id}>
+            {student.student_name || student.student_email || student.id}
+          </option>
+        ))}
+      </select>
+      <button
+        type="submit"
+        className="btn-primary w-full"
+        disabled={assignments.loading || students.loading || !projectAssignments.length || !studentRows.length}
+      >
+        {t('common.save')}
+      </button>
+    </form>
+  )
+}
+
+function GroupsSection() {
   const groups = useLoad(() => assignmentsApi.groups({ page_size: 100 }), [])
+  const [groupFormKey, setGroupFormKey] = useState(0)
   return (
     <section className="grid gap-5 xl:grid-cols-[400px_1fr]">
-      <AssignmentForm groupWork onCreated={groups.reload} />
+      <div className="space-y-5">
+        <AssignmentForm
+          groupWork
+          onCreated={() => {
+            groups.reload()
+            setGroupFormKey(key => key + 1)
+          }}
+        />
+        <GroupCreateForm key={groupFormKey} onCreated={groups.reload} />
+      </div>
       {groups.loading ? (
         <div className="space-y-3">{[1, 2, 3].map(i => <Skeleton key={i} className="h-14" />)}</div>
       ) : (
@@ -303,7 +404,6 @@ function GroupsSection() {
 }
 
 function ActivitySection() {
-  const { t } = useTranslation()
   const majors = useLoad(() => pedagogiqueApi.majors({ page_size: 100 }), [])
   const students = useLoad(() => adminApi.studentProfiles({ page_size: 100 }), [])
 

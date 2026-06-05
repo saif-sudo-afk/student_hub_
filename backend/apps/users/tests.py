@@ -323,7 +323,7 @@ class LoginViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['user']['email'], 'mixed.case@example.com')
 
-    def test_inactive_user_with_valid_password_gets_inactive_message(self):
+    def test_unverified_inactive_user_with_valid_password_gets_verification_message(self):
         CustomUser.objects.create_user(
             email='inactive@example.com',
             password='correct-password',
@@ -340,7 +340,7 @@ class LoginViewTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertIn('Account is not active', str(response.data))
+        self.assertIn('Account not verified', str(response.data))
 
     def test_inactive_user_with_wrong_password_keeps_generic_error(self):
         CustomUser.objects.create_user(

@@ -27,6 +27,12 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('A user with this email already exists.')
         return email
 
+    def validate_major_id(self, value):
+        from apps.pedagogique.models import Major
+        if not Major.objects.filter(id=value).exists():
+            raise serializers.ValidationError('Selected major does not exist.')
+        return value
+
     def validate(self, attrs):
         if attrs['password'] != attrs.pop('confirm_password'):
             raise serializers.ValidationError({'confirm_password': 'Passwords do not match.'})
@@ -49,7 +55,7 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
 
-        major = Major.objects.filter(id=major_id).first()
+        major = Major.objects.get(id=major_id)
         StudentProfile.objects.create(user=user, major=major, year_of_study=year)
         return user
 
@@ -102,11 +108,14 @@ class PasswordChangeSerializer(serializers.Serializer):
 class StudentProfileSerializer(serializers.ModelSerializer):
     major_name = serializers.CharField(source='major.name', read_only=True)
     major_code = serializers.CharField(source='major.code', read_only=True)
+    student_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    student_email = serializers.EmailField(source='user.email', read_only=True)
 
     class Meta:
         model = StudentProfile
         fields = [
-            'id', 'major', 'major_name', 'major_code',
+            'id', 'student_name', 'student_email',
+            'major', 'major_name', 'major_code',
             'year_of_study', 'submission_rate', 'approval_rate',
             'grade_average', 'activity_score',
         ]
@@ -134,10 +143,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             'id', 'email', 'first_name', 'last_name', 'role',
-            'phone_number', 'is_email_verified', 'force_password_change',
+            'phone_number', 'is_active', 'is_email_verified', 'force_password_change',
             'profile_picture_url', 'created_at', 'student_profile', 'professor_profile',
         ]
-        read_only_fields = ['id', 'email', 'role', 'is_email_verified', 'created_at']
+        read_only_fields = ['id', 'email', 'role', 'is_active', 'is_email_verified', 'created_at']
 
     def get_profile_picture_url(self, obj):
         if obj.profile_picture:
@@ -161,6 +170,17 @@ class CreateProfessorSerializer(serializers.Serializer):
     send_welcome_email = serializers.BooleanField(default=True)
 
     def validate_email(self, value):
-        if CustomUser.objects.filter(email=value).exists():
+        email = CustomUser.objects.normalize_email(value).strip()
+        if CustomUser.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError('A user with this email already exists.')
+        return email
+
+    def validate_major_ids(self, value):
+        from apps.pedagogique.models import Major
+        existing = set(Major.objects.filter(id__in=value).values_list('id', flat=True))
+        missing = [str(item) for item in value if item not in existing]
+        if missing:
+            raise serializers.ValidationError(
+                f'Unknown major id(s): {", ".join(missing)}'
+            )
         return value

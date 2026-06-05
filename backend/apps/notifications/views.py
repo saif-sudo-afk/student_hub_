@@ -10,8 +10,11 @@ from .serializers import NotificationSerializer
 @permission_classes([IsAuthenticated])
 def list_notifications(request):
     qs = Notification.objects.filter(recipient=request.user).order_by('-created_at')
-    page = int(request.query_params.get('page', 1))
-    page_size = int(request.query_params.get('page_size', 20))
+    try:
+        page = max(1, int(request.query_params.get('page', 1)))
+        page_size = min(100, max(1, int(request.query_params.get('page_size', 20))))
+    except (ValueError, TypeError):
+        page, page_size = 1, 20
     start = (page - 1) * page_size
     total = qs.count()
     unread = qs.filter(is_read=False).count()

@@ -8,7 +8,6 @@ import {
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import AccessibleModal from '../../components/AccessibleModal'
-import DataTable from '../../components/DataTable'
 import FileDropzone from '../../components/FileDropzone'
 import ProgressRing from '../../components/ProgressRing'
 import DashboardLayout from '../../layouts/DashboardLayout'

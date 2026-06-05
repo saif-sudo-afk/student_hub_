@@ -20,7 +20,11 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticated()]
-        return [IsAuthenticated()]  # Further checked in method
+        if self.action == 'create':
+            return [IsAuthenticated()]
+        if self.action in ('approve', 'reject', 'update', 'partial_update', 'destroy'):
+            return [IsAdmin()]
+        return [IsAdmin()]
 
     def get_queryset(self):
         user = self.request.user

@@ -10,12 +10,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 
-from apps.users.permissions import IsProfessor, IsAdmin, IsAdminOrProfessor
+from apps.users.permissions import IsAdminOrProfessor
 from apps.pedagogique.models import Major
 from apps.assignments.models import Submission
 
 
-def _get_grades_data(major_id):
+def _get_grades_data(major_id, professor=None):
     """Build a list of grade rows for a given major."""
     try:
         major = Major.objects.get(pk=major_id)
@@ -28,6 +28,8 @@ def _get_grades_data(major_id):
     ).select_related(
         'student__user', 'assignment'
     ).order_by('student__user__last_name', 'assignment__title')
+    if professor is not None:
+        submissions = submissions.filter(assignment__professor=professor)
 
     rows = []
     for sub in submissions:
@@ -51,7 +53,16 @@ def export_grades(request):
     if not major_id:
         return Response({'detail': 'major query param is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    major, rows = _get_grades_data(major_id)
+    professor = None
+    if request.user.role == 'PROFESSOR':
+        professor = request.user.professor_profile
+        if not professor.majors.filter(id=major_id).exists():
+            return Response(
+                {'detail': 'You can only export grades for your assigned majors.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+    major, rows = _get_grades_data(major_id, professor=professor)
     if major is None:
         return Response({'detail': 'Major not found.'}, status=status.HTTP_404_NOT_FOUND)
 

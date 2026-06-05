@@ -53,6 +53,13 @@ for _o in [_PROD_ORIGIN, _DEPLOY_ORIGIN]:
         CSRF_TRUSTED_ORIGINS.append(_o)
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config_bool('SECURE_SSL_REDIRECT', default=True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True)
+    SECURE_HSTS_PRELOAD = config_bool('SECURE_HSTS_PRELOAD', default=True)
 
 # Vercel strips the /api routePrefix before forwarding requests to Django, so
 # production requests to /api/v1/... arrive here as /v1/.... The /api/v1/...

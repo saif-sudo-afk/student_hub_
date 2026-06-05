@@ -2,8 +2,9 @@
 Serializers for assignments, submissions, groups, and notices.
 """
 
+from decimal import Decimal
+
 from rest_framework import serializers
-from django.conf import settings
 from .models import Assignment, AssignmentFile, Submission, SubmissionFile, ProjectGroup, StudentNotice
 
 
@@ -23,6 +24,10 @@ class AssignmentSerializer(serializers.ModelSerializer):
     professor_name = serializers.CharField(source='professor.user.get_full_name', read_only=True)
     course_name = serializers.CharField(source='course.name', read_only=True, default=None)
     major_names = serializers.SerializerMethodField()
+    submissions_count = serializers.SerializerMethodField()
+    pending_submissions_count = serializers.SerializerMethodField()
+    approved_submissions_count = serializers.SerializerMethodField()
+    rejected_submissions_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Assignment
@@ -30,12 +35,26 @@ class AssignmentSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'deadline', 'type',
             'is_group_work', 'professor', 'professor_name',
             'course', 'course_name', 'majors', 'major_names',
-            'files', 'created_at', 'updated_at',
+            'files', 'submissions_count', 'pending_submissions_count',
+            'approved_submissions_count', 'rejected_submissions_count',
+            'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'professor', 'created_at', 'updated_at']
 
     def get_major_names(self, obj):
         return [m.name for m in obj.majors.all()]
+
+    def get_submissions_count(self, obj):
+        return obj.submissions.count()
+
+    def get_pending_submissions_count(self, obj):
+        return obj.submissions.filter(status=Submission.PENDING).count()
+
+    def get_approved_submissions_count(self, obj):
+        return obj.submissions.filter(status=Submission.APPROVED).count()
+
+    def get_rejected_submissions_count(self, obj):
+        return obj.submissions.filter(status=Submission.REJECTED).count()
 
     def create(self, validated_data):
         majors = validated_data.pop('majors', [])
@@ -83,7 +102,13 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
 class ReviewSubmissionSerializer(serializers.Serializer):
     action = serializers.ChoiceField(choices=['approve', 'reject'])
-    grade = serializers.DecimalField(max_digits=4, decimal_places=2, min_value=0, max_value=20, required=False)
+    grade = serializers.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        min_value=Decimal('0'),
+        max_value=Decimal('20'),
+        required=False,
+    )
     feedback = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, attrs):
