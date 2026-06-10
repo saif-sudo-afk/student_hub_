@@ -32,7 +32,10 @@ def validate_uploaded_file(uploaded_file):
 
     content_type = (getattr(uploaded_file, 'content_type', '') or '').lower()
     allowed_mime_types = [m.lower() for m in getattr(settings, 'ALLOWED_MIME_TYPES', [])]
-    if content_type and allowed_mime_types and content_type not in allowed_mime_types:
+    # application/octet-stream is the generic binary type reported by some browsers/OS
+    # combinations (e.g. Chrome on Windows for .zip and .xlsx).  Extension check above
+    # is already sufficient; rejecting this type would block valid uploads.
+    if content_type and allowed_mime_types and content_type not in allowed_mime_types and content_type != 'application/octet-stream':
         raise ValidationError(
             f'MIME type "{content_type}" is not allowed for uploaded files.'
         )

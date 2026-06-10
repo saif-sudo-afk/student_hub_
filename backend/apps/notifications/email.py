@@ -101,11 +101,10 @@ def _resend_send(subject, html, recipient, from_email):
 def _smtp_send(subject, html, recipient, from_email):
     smtp_user = (getattr(settings, "EMAIL_HOST_USER", "") or "").strip()
     if not smtp_user:
-        logger.error(
-            "[email] No delivery backend available. "
-            "Set RESEND_API_KEY (Resend) or EMAIL_HOST_USER + EMAIL_HOST_PASSWORD (Gmail SMTP)."
+        logger.warning(
+            "[email] EMAIL_HOST_USER not set — falling back to Django EMAIL_BACKEND (%s).",
+            getattr(settings, "EMAIL_BACKEND", "unknown"),
         )
-        return False
     try:
         to = [recipient] if isinstance(recipient, str) else list(recipient)
         django_send_mail(
@@ -116,10 +115,10 @@ def _smtp_send(subject, html, recipient, from_email):
             recipient_list=to,
             fail_silently=False,
         )
-        logger.info("[email] SMTP OK → %s | %r", recipient, subject)
+        logger.info("[email] SMTP/Django-backend OK → %s | %r", recipient, subject)
         return True
     except Exception as exc:
-        logger.exception("[email] SMTP failed → %s | %s", recipient, exc)
+        logger.exception("[email] SMTP/Django-backend failed → %s | %s", recipient, exc)
         return False
 
 

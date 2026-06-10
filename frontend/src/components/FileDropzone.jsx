@@ -1,4 +1,5 @@
 import { UploadCloud, FileArchive, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { validateFiles, readableSize } from '../utils/files'
 
@@ -8,7 +9,7 @@ export default function FileDropzone({ files, setFiles, progress = 0, multiple =
   const onFiles = nextFiles => {
     const error = validateFiles(nextFiles, t)
     if (error) {
-      window.dispatchEvent(new CustomEvent('student-hub-toast', { detail: { type: 'error', message: error } }))
+      toast.error(error)
       return
     }
     setFiles(multiple ? Array.from(nextFiles) : Array.from(nextFiles).slice(0, 1))

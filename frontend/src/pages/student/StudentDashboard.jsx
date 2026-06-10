@@ -318,6 +318,7 @@ function AssignmentsSection() {
   const submit = async event => {
     event.preventDefault()
     if (!selected) return
+    setProgress(0)
     try {
       const payload = buildMultipart({}, 'files', files)
       await assignmentsApi.submit(selected.id, payload, e => setProgress(Math.round((e.loaded * 100) / e.total)))
@@ -371,7 +372,7 @@ function AssignmentsSection() {
           <p className="col-span-3 py-12 text-center text-[var(--color-muted)]">No assignments found.</p>
         )}
       </div>
-      <AccessibleModal open={!!selected} title={selected?.title || ''} onClose={() => setSelected(null)}>
+      <AccessibleModal open={!!selected} title={selected?.title || ''} onClose={() => { setSelected(null); setFiles([]); setProgress(0) }}>
         <form className="space-y-4" onSubmit={submit}>
           <FileDropzone files={files} setFiles={setFiles} progress={progress} />
           <button className="btn-primary w-full" type="submit">{t('common.submit')}</button>
@@ -386,14 +387,23 @@ function GroupsSection() {
   const groups = useLoad(() => assignmentsApi.groups({ page_size: 100 }), [])
   const [selected, setSelected] = useState(null)
   const [link, setLink] = useState('')
+  const [files, setFiles] = useState([])
+  const [progress, setProgress] = useState(0)
+
+  const closeModal = () => { setSelected(null); setLink(''); setFiles([]); setProgress(0) }
 
   const submit = async event => {
     event.preventDefault()
+    if (!link && !files.length) {
+      toast.error(t('errors.linkOrFile'))
+      return
+    }
+    setProgress(0)
     try {
-      await assignmentsApi.submitGroupLink(selected.id, { link_url: link })
+      const payload = buildMultipart({ link_url: link || undefined }, 'files', files)
+      await assignmentsApi.submitGroupLink(selected.id, payload, e => setProgress(Math.round((e.loaded * 100) / e.total)))
       toast.success(t('student.groups.submitted'))
-      setSelected(null)
-      setLink('')
+      closeModal()
     } catch (error) {
       toast.error(apiErrorMessage(error, t('errors.saveFailed')))
     }
@@ -429,9 +439,11 @@ function GroupsSection() {
           </button>
         </motion.article>
       ))}
-      <AccessibleModal open={!!selected} title={selected?.name || ''} onClose={() => setSelected(null)}>
+      <AccessibleModal open={!!selected} title={selected?.name || ''} onClose={closeModal}>
         <form className="space-y-4" onSubmit={submit}>
-          <input className="input-field" type="url" value={link} onChange={e => setLink(e.target.value)} placeholder={t('forms.projectLink')} required />
+          <input className="input-field" type="url" value={link} onChange={e => setLink(e.target.value)} placeholder={t('forms.projectLink')} />
+          <p className="text-center text-xs text-[var(--color-muted)]">{t('common.or', 'or')}</p>
+          <FileDropzone files={files} setFiles={setFiles} progress={progress} />
           <button className="btn-primary w-full" type="submit">{t('common.submit')}</button>
         </form>
       </AccessibleModal>

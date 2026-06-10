@@ -308,6 +308,7 @@ ALLOWED_MIME_TYPES = [
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'application/zip',
     'application/x-zip-compressed',
+    'application/octet-stream',  # generic binary reported by some browsers on Windows
 ]
 
 # ─── Logging ─────────────────────────────────────────────────────────────────

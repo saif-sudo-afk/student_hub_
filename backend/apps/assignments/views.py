@@ -106,7 +106,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         # Notify professor
         notify(
             assignment.professor.user,
-            notif_type='ASSIGNMENT_POSTED',
+            notif_type='SUBMISSION_RECEIVED',
             title=f'New submission: {assignment.title}',
             message=f'{request.user.get_full_name()} submitted "{assignment.title}".',
             link=f'/professor/assignments',
@@ -283,30 +283,47 @@ class ProjectGroupViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        link_url = request.data.get('link_url')
-        if not link_url:
-            return Response({'detail': 'link_url is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
         if Submission.objects.filter(assignment=group.assignment, group=group).exists():
             return Response({'detail': 'Already submitted.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        submission = Submission.objects.create(
-            assignment=group.assignment,
-            group=group,
-            status=Submission.PENDING,
-        )
-        SubmissionFile.objects.create(
-            submission=submission,
-            link_url=link_url,
-            file_type='link',
-            file_size=0,
-            original_filename='project_link',
-        )
+        link_url = request.data.get('link_url')
+        files = request.FILES.getlist('files')
+
+        if not link_url and not files:
+            return Response(
+                {'detail': 'Provide either a link_url or at least one file.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        validated_files = [(f, validate_uploaded_file(f)) for f in files]
+
+        with transaction.atomic():
+            submission = Submission.objects.create(
+                assignment=group.assignment,
+                group=group,
+                status=Submission.PENDING,
+            )
+            if link_url:
+                SubmissionFile.objects.create(
+                    submission=submission,
+                    link_url=link_url,
+                    file_type='link',
+                    file_size=0,
+                    original_filename='project_link',
+                )
+            for f, file_type in validated_files:
+                SubmissionFile.objects.create(
+                    submission=submission,
+                    file=f,
+                    original_filename=f.name,
+                    file_type=file_type,
+                    file_size=f.size,
+                )
 
         # Notify professor
         notify(
             group.assignment.professor.user,
-            notif_type='ASSIGNMENT_POSTED',
+            notif_type='SUBMISSION_RECEIVED',
             title=f'Group submission received: {group.assignment.title}',
             message=f'Group "{group.name}" submitted for "{group.assignment.title}".',
             link='/professor/groups',

@@ -8,6 +8,7 @@ const allowedMimeTypes = [
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   'application/zip',
   'application/x-zip-compressed',
+  'application/octet-stream', // generic binary — browser/OS-dependent for .zip, .xlsx on Windows
 ]
 
 export function validateFiles(files, t) {

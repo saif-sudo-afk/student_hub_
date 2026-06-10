@@ -131,6 +131,12 @@ class ProjectGroupSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at']
 
+    def create(self, validated_data):
+        members = validated_data.pop('members', [])
+        group = super().create(validated_data)
+        group.members.set(members)
+        return group
+
     def get_member_details(self, obj):
         return [
             {

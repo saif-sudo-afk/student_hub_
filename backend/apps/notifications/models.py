@@ -10,6 +10,7 @@ class Notification(models.Model):
     # Notification type constants
     ASSIGNMENT_POSTED = 'ASSIGNMENT_POSTED'
     DEADLINE_REMINDER = 'DEADLINE_REMINDER'
+    SUBMISSION_RECEIVED = 'SUBMISSION_RECEIVED'
     SUBMISSION_APPROVED = 'SUBMISSION_APPROVED'
     SUBMISSION_REJECTED = 'SUBMISSION_REJECTED'
     ANNOUNCEMENT_PUBLISHED = 'ANNOUNCEMENT_PUBLISHED'
@@ -22,6 +23,7 @@ class Notification(models.Model):
     TYPE_CHOICES = [
         (ASSIGNMENT_POSTED, 'Assignment Posted'),
         (DEADLINE_REMINDER, 'Deadline Reminder'),
+        (SUBMISSION_RECEIVED, 'Submission Received'),
         (SUBMISSION_APPROVED, 'Submission Approved'),
         (SUBMISSION_REJECTED, 'Submission Rejected'),
         (ANNOUNCEMENT_PUBLISHED, 'Announcement Published'),
