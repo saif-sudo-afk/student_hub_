@@ -207,8 +207,10 @@ def send_email(subject, html, recipient, from_email=None):
     if not recipient:
         return False
     sender = from_email or getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com")
-    # Try Resend first; fall back to Django SMTP.
-    return _resend_send(subject, html, recipient, sender) or _smtp_send(subject, html, recipient, sender)
+    api_key = (getattr(settings, "RESEND_API_KEY", "") or "").strip()
+    if api_key:
+        return _resend_send(subject, html, recipient, sender)
+    return _smtp_send(subject, html, recipient, sender)
 
 
 def send_email_async(subject, html, recipient, from_email=None):
