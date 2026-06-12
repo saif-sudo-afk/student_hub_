@@ -39,7 +39,10 @@ class Course(models.Model):
 
 
 class Semester(models.Model):
-    SEMESTER_CHOICES = [(1, 'Semester 1'), (2, 'Semester 2')]
+    SEMESTER_CHOICES = [
+        (1, 'Semester 1'), (2, 'Semester 2'), (3, 'Semester 3'),
+        (4, 'Semester 4'), (5, 'Semester 5'), (6, 'Semester 6'),
+    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)  # e.g. "S1 2024-2025"
@@ -51,7 +54,6 @@ class Semester(models.Model):
 
     class Meta:
         ordering = ['-school_year', 'semester_number']
-        # Max 2 semesters per school year enforced at model level
         unique_together = [('school_year', 'semester_number')]
 
     def __str__(self):

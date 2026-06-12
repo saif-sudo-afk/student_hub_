@@ -24,7 +24,8 @@
     "publish": "Publish",
     "approve": "Approve",
     "reject": "Reject",
-    "submit": "Submit"
+    "submit": "Submit",
+    "or": "or"
   },
   "errors": {
     "invalidFileType": "Only PDF, XLS, XLSX, PPTX, and ZIP files are allowed.",
@@ -251,8 +252,7 @@
       "majors": "Majors",
       "courses": "Courses",
       "semesters": "Semesters",
-      "semesterOne": "Semester 1",
-      "semesterTwo": "Semester 2",
+      "semesterLabel": "Semester {{number}}",
       "active": "Set as active semester"
     },
     "calendar": {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  BarChart3, Bell, BookOpen, FileText,
+  BarChart3, Bell, BookOpen, ExternalLink, FileText,
   FolderKanban, Home, Megaphone, Users,
 } from 'lucide-react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -340,6 +340,23 @@ function AssignmentsSection() {
               }`}>{t(`status.${row.status}`)}</span>
             )},
             { key: 'grade', labelKey: 'tables.grade', render: row => row.grade || '—' },
+            { key: 'files', labelKey: 'tables.files', render: row => (
+              <div className="flex flex-wrap gap-1">
+                {(row.files || []).map(f => f.url ? (
+                  <a
+                    key={f.id}
+                    href={f.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 rounded-lg bg-electric-500/10 px-2 py-1 text-xs font-semibold text-electric-600 transition-colors hover:bg-electric-500/20 dark:text-electric-400"
+                  >
+                    <ExternalLink size={10} />
+                    {f.original_filename || f.file_type}
+                  </a>
+                ) : null)}
+                {!(row.files || []).some(f => f.url) && '—'}
+              </div>
+            )},
             { key: 'actions', labelKey: 'tables.actions', render: row => (
               <div className="flex gap-2">
                 <button type="button" className="btn-primary px-3 py-2" onClick={() => setReviewState({ submission: row, action: 'approve', assignmentId: selected.id })}>{t('common.approve')}</button>

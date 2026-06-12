@@ -417,8 +417,9 @@ function StructureSection() {
                   <input className="input-field" placeholder={t('forms.name')} value={semesterForm.name} onChange={e => setSemesterForm({ ...semesterForm, name: e.target.value })} required />
                   <input className="input-field" placeholder={t('forms.schoolYear')} value={semesterForm.school_year} onChange={e => setSemesterForm({ ...semesterForm, school_year: e.target.value })} required />
                   <select className="input-field" value={semesterForm.semester_number} onChange={e => setSemesterForm({ ...semesterForm, semester_number: e.target.value })}>
-                    <option value="1">{t('admin.structure.semesterOne')}</option>
-                    <option value="2">{t('admin.structure.semesterTwo')}</option>
+                    {[1, 2, 3, 4, 5, 6].map(n => (
+                      <option key={n} value={n}>{t('admin.structure.semesterLabel', { number: n })}</option>
+                    ))}
                   </select>
                   <input className="input-field" type="date" value={semesterForm.start_date} onChange={e => setSemesterForm({ ...semesterForm, start_date: e.target.value })} required />
                   <input className="input-field" type="date" value={semesterForm.end_date} onChange={e => setSemesterForm({ ...semesterForm, end_date: e.target.value })} required />
@@ -496,7 +497,7 @@ function StructureSection() {
                     )}
                     {tab === 'semesters' && row.semester_number && (
                       <p className="text-xs text-[var(--color-muted)]">
-                        {row.semester_number === 1 ? t('admin.structure.semesterOne') : t('admin.structure.semesterTwo')}
+                        {t('admin.structure.semesterLabel', { number: row.semester_number })}
                       </p>
                     )}
                   </div>
@@ -639,6 +640,9 @@ function AnnouncementsSection() {
   const [form, setForm] = useState({ title: '', description: '', major: '' })
   const announcements = useLoad(() => announcementsApi.list({ page_size: 100 }), [])
   const majors = useLoad(() => pedagogiqueApi.majors({ page_size: 100 }), [])
+  const [rejectId, setRejectId] = useState(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejectSaving, setRejectSaving] = useState(false)
 
   const create = async event => {
     event.preventDefault()
@@ -653,9 +657,22 @@ function AnnouncementsSection() {
   }
 
   const approve = id => announcementsApi.approve(id).then(announcements.reload).catch(error => toast.error(apiErrorMessage(error, t('errors.saveFailed'))))
-  const reject = id => {
-    const reason = window.prompt(t('admin.announcements.reasonPrompt'))
-    if (reason) announcementsApi.reject(id, reason).then(announcements.reload).catch(error => toast.error(apiErrorMessage(error, t('errors.saveFailed'))))
+  const reject = id => { setRejectId(id); setRejectReason('') }
+
+  const submitReject = async event => {
+    event.preventDefault()
+    setRejectSaving(true)
+    try {
+      await announcementsApi.reject(rejectId, rejectReason)
+      toast.success(t('common.saved'))
+      setRejectId(null)
+      setRejectReason('')
+      announcements.reload()
+    } catch (error) {
+      toast.error(apiErrorMessage(error, t('errors.saveFailed')))
+    } finally {
+      setRejectSaving(false)
+    }
   }
 
   return (
@@ -672,7 +689,7 @@ function AnnouncementsSection() {
       </form>
       <DataTable
         rows={asList(announcements.data)}
-        filters={[{ key: 'status', labelKey: 'filters.status', options: ['PENDING', 'APPROVED', 'REJECTED', 'DRAFT'].map(status => ({ value: status, label: t(`status.${status}`) })) }]}
+        filters={[{ key: 'status', labelKey: 'filters.status', options: ['PENDING', 'APPROVED', 'REJECTED', 'DRAFT'].map(s => ({ value: s, label: t(`status.${s}`) })) }]}
         columns={[
           { key: 'title', labelKey: 'tables.title' },
           { key: 'status', labelKey: 'tables.status', render: row => t(`status.${row.status}`) },
@@ -685,6 +702,30 @@ function AnnouncementsSection() {
           ) : '-' },
         ]}
       />
+      <AccessibleModal open={!!rejectId} title={t('common.reject')} onClose={() => setRejectId(null)} size="max-w-md">
+        <form onSubmit={submitReject} className="space-y-4 pt-1">
+          <div>
+            <label className="mb-1 block text-sm font-semibold">{t('admin.announcements.reasonPrompt')}</label>
+            <textarea
+              className="input-field min-h-[6rem]"
+              value={rejectReason}
+              onChange={e => setRejectReason(e.target.value)}
+              required
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button type="button" className="btn-secondary px-4 py-2" onClick={() => setRejectId(null)}>{t('common.close')}</button>
+            <button
+              type="submit"
+              className="rounded-lg bg-red-500 px-4 py-2 font-bold text-white transition-colors hover:bg-red-400"
+              disabled={rejectSaving}
+            >
+              {t('common.reject')}
+            </button>
+          </div>
+        </form>
+      </AccessibleModal>
     </section>
   )
 }

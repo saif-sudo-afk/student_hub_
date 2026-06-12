@@ -442,7 +442,7 @@ function GroupsSection() {
       <AccessibleModal open={!!selected} title={selected?.name || ''} onClose={closeModal}>
         <form className="space-y-4" onSubmit={submit}>
           <input className="input-field" type="url" value={link} onChange={e => setLink(e.target.value)} placeholder={t('forms.projectLink')} />
-          <p className="text-center text-xs text-[var(--color-muted)]">{t('common.or', 'or')}</p>
+          <p className="text-center text-xs text-[var(--color-muted)]">{t('common.or')}</p>
           <FileDropzone files={files} setFiles={setFiles} progress={progress} />
           <button className="btn-primary w-full" type="submit">{t('common.submit')}</button>
         </form>
