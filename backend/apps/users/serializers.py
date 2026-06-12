@@ -48,8 +48,8 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
 
         user = CustomUser.objects.create(
             role=CustomUser.STUDENT,
-            is_active=False,
-            is_email_verified=False,
+            is_active=True,
+            is_email_verified=True,
             **validated_data,
         )
         user.set_password(password)

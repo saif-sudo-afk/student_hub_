@@ -18,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 
-from apps.notifications.email import send_email
+from apps.notifications.email import send_email, send_email_async
 
 logger = logging.getLogger(__name__)
 
@@ -74,27 +74,18 @@ def register_student(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    try:
-        with transaction.atomic():
-            user = serializer.save()
-            token_obj = EmailVerificationToken.objects.create(user=user)
-            verification_url = f"{settings.FRONTEND_URL}/auth/verify-email/{token_obj.token}"
-            html = render_to_string('emails/verification.html', {
-                'first_name': user.first_name,
-                'verification_url': verification_url,
-            })
-            sent = send_email('Student Hub - Verify your email', html, user.email)
-            if not sent:
-                raise EmailDeliveryError
-    except EmailDeliveryError:
-        logger.error('Student verification email failed to send to %s', serializer.validated_data.get('email'))
-        return Response(
-            {'detail': 'Registration could not send the verification email. Please try again later.'},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
+    user = serializer.save()
+    send_email_async(
+        'Welcome to Student Hub',
+        render_to_string('emails/verification.html', {
+            'first_name': user.first_name,
+            'verification_url': f"{settings.FRONTEND_URL}/dashboard",
+        }),
+        user.email,
+    )
 
     return Response(
-        {'detail': 'Registration successful. Check your email to verify your account.'},
+        {'detail': 'Registration successful. You can now log in.'},
         status=status.HTTP_201_CREATED,
     )
 
