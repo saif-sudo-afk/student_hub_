@@ -9,6 +9,7 @@ import {
   ChevronRight,
   FileSearch,
   GraduationCap,
+  Paperclip,
   LayoutDashboard,
   Megaphone,
   Plus,
@@ -25,6 +26,7 @@ import DashboardLayout from '../../layouts/DashboardLayout'
 import { adminApi, academicsApi, announcementsApi, pedagogiqueApi } from '../../services/endpoints'
 import { apiErrorMessage } from '../../services/api'
 import { formatDate } from '../../utils/format'
+import { buildMultipart, readableSize, validateFiles } from '../../utils/files'
 
 const PRIORITY_COLORS = {
   LOW:    { bg: 'bg-blue-500/15',   text: 'text-blue-600 dark:text-blue-400',   dot: 'bg-blue-500' },
@@ -296,9 +298,13 @@ function StructureSection() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [semesterForm, setSemesterForm] = useState(emptySemesterForm)
+  const [courseFile, setCourseFile] = useState(null)
+  const [managingCourse, setManagingCourse] = useState(null)
+  const [profToAssign, setProfToAssign] = useState('')
   const majors = useLoad(() => pedagogiqueApi.majors({ page_size: 100 }), [])
   const courses = useLoad(() => pedagogiqueApi.courses({ page_size: 100 }), [])
   const semesters = useLoad(() => pedagogiqueApi.semesters({ page_size: 100 }), [])
+  const allProfessors = useLoad(() => adminApi.users({ role: 'PROFESSOR', page_size: 100 }), [])
 
   const dataByTab = { majors: majors, courses: courses, semesters: semesters }
   const rows = asList(dataByTab[tab].data)
@@ -307,10 +313,16 @@ function StructureSection() {
     event.preventDefault()
     try {
       if (tab === 'majors') await pedagogiqueApi.createMajor(form)
-      if (tab === 'courses') await pedagogiqueApi.createCourse({ ...form, majors: [] })
+      if (tab === 'courses') {
+        const payload = courseFile
+          ? buildMultipart({ ...form, majors: [] }, 'file', [courseFile])
+          : { ...form, majors: [] }
+        await pedagogiqueApi.createCourse(payload)
+      }
       if (tab === 'semesters') await pedagogiqueApi.createSemester({ ...semesterForm, semester_number: Number(semesterForm.semester_number) })
       setForm(emptyForm)
       setSemesterForm(emptySemesterForm)
+      setCourseFile(null)
       setShowForm(false)
       dataByTab[tab].reload()
       toast.success(t('common.saved'))
@@ -325,6 +337,29 @@ function StructureSection() {
       if (tab === 'courses') await pedagogiqueApi.deleteCourse(id)
       if (tab === 'semesters') await pedagogiqueApi.deleteSemester(id)
       dataByTab[tab].reload()
+    } catch (error) {
+      toast.error(apiErrorMessage(error, t('errors.saveFailed')))
+    }
+  }
+
+  const assignProf = async courseId => {
+    if (!profToAssign) return
+    try {
+      await pedagogiqueApi.assignProfessor(courseId, profToAssign)
+      courses.reload()
+      setProfToAssign('')
+      setManagingCourse(null)
+      toast.success(t('common.saved'))
+    } catch (error) {
+      toast.error(apiErrorMessage(error, t('errors.saveFailed')))
+    }
+  }
+
+  const removeProf = async (courseId, profProfileId) => {
+    try {
+      await pedagogiqueApi.removeProfessor(courseId, profProfileId)
+      courses.reload()
+      toast.success(t('common.saved'))
     } catch (error) {
       toast.error(apiErrorMessage(error, t('errors.saveFailed')))
     }
@@ -411,6 +446,32 @@ function StructureSection() {
                   <input className="input-field" placeholder={t('forms.name')} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
                   <input className="input-field" placeholder={t('forms.code')} value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required />
                   <input className="input-field" placeholder={t('forms.description')} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+                  {tab === 'courses' && (
+                    <div className="md:col-span-3">
+                      <label className="flex items-center gap-2 text-sm font-medium text-[var(--color-muted)] mb-2">
+                        <Paperclip size={14} />
+                        Attach file <span className="text-xs font-normal">(optional — PDF, XLSX, PPTX, ZIP, max 10 MB)</span>
+                      </label>
+                      <input
+                        type="file"
+                        accept=".pdf,.xlsx,.xls,.pptx,.zip"
+                        className="block w-full text-sm text-[var(--color-muted)] file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gold-500/10 file:text-gold-500 hover:file:bg-gold-500/20 cursor-pointer"
+                        onChange={e => {
+                          const file = e.target.files[0] || null
+                          if (file) {
+                            const err = validateFiles([file], t)
+                            if (err) { toast.error(err); e.target.value = ''; return }
+                          }
+                          setCourseFile(file)
+                        }}
+                      />
+                      {courseFile && (
+                        <p className="mt-1.5 text-xs text-[var(--color-muted)]">
+                          {courseFile.name} · {readableSize(courseFile.size)}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
@@ -499,6 +560,82 @@ function StructureSection() {
                       <p className="text-xs text-[var(--color-muted)]">
                         {t('admin.structure.semesterLabel', { number: row.semester_number })}
                       </p>
+                    )}
+                    {tab === 'courses' && row.file && (
+                      <a
+                        href={row.file}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 mt-1 text-xs font-semibold text-gold-500 hover:underline"
+                      >
+                        <Paperclip size={12} />
+                        View attached file
+                      </a>
+                    )}
+                    {tab === 'courses' && (
+                      <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                        <p className="text-xs font-semibold text-[var(--color-muted)] mb-2 flex items-center gap-1">
+                          <Users size={11} /> Professors
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {row.professors.length === 0 && (
+                            <span className="text-xs text-[var(--color-muted)]">None assigned</span>
+                          )}
+                          {row.professors.map((profId, idx) => (
+                            <span key={profId} className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-electric-500/10 text-electric-500 text-xs font-semibold">
+                              {row.professor_names[idx]}
+                              <button
+                                type="button"
+                                onClick={() => removeProf(row.id, profId)}
+                                className="rounded-full p-0.5 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                              >
+                                <X size={10} />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                        {managingCourse === row.id ? (
+                          <div className="mt-2 flex gap-2 items-center">
+                            <select
+                              className="input-field text-xs py-1 flex-1 min-w-0"
+                              value={profToAssign}
+                              onChange={e => setProfToAssign(e.target.value)}
+                            >
+                              <option value="">Select professor…</option>
+                              {asList(allProfessors.data)
+                                .filter(u => u.professor_profile && !row.professors.includes(u.professor_profile.id))
+                                .map(u => (
+                                  <option key={u.professor_profile.id} value={u.professor_profile.id}>
+                                    {u.first_name} {u.last_name}
+                                  </option>
+                                ))}
+                            </select>
+                            <button
+                              type="button"
+                              onClick={() => assignProf(row.id)}
+                              disabled={!profToAssign}
+                              className="btn-primary text-xs py-1 px-3 shrink-0 disabled:opacity-50"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setManagingCourse(null)}
+                              className="p-1 rounded hover:bg-slate-500/10 text-[var(--color-muted)] shrink-0"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { setManagingCourse(row.id); setProfToAssign('') }}
+                            className="mt-2 text-xs text-electric-500 hover:underline inline-flex items-center gap-1 font-semibold"
+                          >
+                            <Plus size={12} /> Assign professor
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </motion.div>

@@ -54,6 +54,18 @@ class CourseViewSet(viewsets.ModelViewSet):
         course.professors.add(prof)
         return Response(CourseSerializer(course).data)
 
+    @action(detail=True, methods=['post'], permission_classes=[IsAdmin])
+    def remove_professor(self, request, pk=None):
+        course = self.get_object()
+        professor_id = request.data.get('professor_id')
+        from apps.users.models import ProfessorProfile
+        try:
+            prof = ProfessorProfile.objects.get(pk=professor_id)
+        except ProfessorProfile.DoesNotExist:
+            return Response({'detail': 'Professor not found.'}, status=status.HTTP_404_NOT_FOUND)
+        course.professors.remove(prof)
+        return Response(CourseSerializer(course).data)
+
 
 class SemesterViewSet(viewsets.ModelViewSet):
     queryset = Semester.objects.all()

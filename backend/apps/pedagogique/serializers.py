@@ -19,6 +19,7 @@ class CourseSerializer(serializers.ModelSerializer):
             'id', 'name', 'code', 'description',
             'majors', 'major_names',
             'professors', 'professor_names',
+            'file',
             'created_at',
         ]
         read_only_fields = ['id', 'created_at']

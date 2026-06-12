@@ -4,6 +4,7 @@ Pedagogique models: Major, Course, Semester.
 
 import uuid
 from django.db import models
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 
 class Major(models.Model):
@@ -28,6 +29,12 @@ class Course(models.Model):
     majors = models.ManyToManyField(Major, related_name='courses', blank=True)
     professors = models.ManyToManyField(
         'users.ProfessorProfile', related_name='courses', blank=True
+    )
+    file = models.FileField(
+        upload_to='course_files/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
