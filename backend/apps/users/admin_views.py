@@ -11,7 +11,7 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from rest_framework import status
 
-from apps.notifications.email import describe_email_settings, send_email, send_email_with_diagnostics
+from apps.notifications.email import describe_email_settings, send_email, send_email_async, send_email_with_diagnostics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
@@ -117,43 +117,34 @@ def create_professor(request):
     data = serializer.validated_data
     temp_password = generate_temp_password()
 
-    try:
-        with transaction.atomic():
-            user = CustomUser.objects.create(
-                email=data['email'],
-                first_name=data['first_name'],
-                last_name=data['last_name'],
-                role=CustomUser.PROFESSOR,
-                is_active=True,
-                is_email_verified=True,
-                force_password_change=True,
-            )
-            user.set_password(temp_password)
-            user.save()
-
-            prof = ProfessorProfile.objects.create(user=user)
-            majors = Major.objects.filter(id__in=data['major_ids'])
-            prof.majors.set(majors)
-
-            if data.get('send_welcome_email', True):
-                html = render_to_string('emails/welcome_professor.html', {
-                    'first_name': user.first_name,
-                    'email': user.email,
-                    'temp_password': temp_password,
-                    'login_url': f"{settings.FRONTEND_URL}/auth/login",
-                })
-                sent = send_email('Welcome to Student Hub - Your Professor Account', html, user.email)
-                if not sent:
-                    raise EmailDeliveryError
-    except EmailDeliveryError:
-        logger.error('Professor welcome email failed to send to %s', data['email'])
-        return Response(
-            {'detail': 'Professor account was not created because the welcome email could not be sent.'},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+    with transaction.atomic():
+        user = CustomUser.objects.create(
+            email=data['email'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            role=CustomUser.PROFESSOR,
+            is_active=True,
+            is_email_verified=True,
+            force_password_change=True,
         )
+        user.set_password(temp_password)
+        user.save()
+
+        prof = ProfessorProfile.objects.create(user=user)
+        majors = Major.objects.filter(id__in=data['major_ids'])
+        prof.majors.set(majors)
+
+    if data.get('send_welcome_email', True):
+        html = render_to_string('emails/welcome_professor.html', {
+            'first_name': user.first_name,
+            'email': user.email,
+            'temp_password': temp_password,
+            'login_url': f"{settings.FRONTEND_URL}/auth/login",
+        })
+        send_email_async('Welcome to Student Hub - Your Professor Account', html, user.email)
 
     return Response(
-        {'detail': 'Professor account created.', 'user': UserSerializer(user).data},
+        {'detail': 'Professor account created.', 'temp_password': temp_password, 'user': UserSerializer(user).data},
         status=status.HTTP_201_CREATED,
     )
 
