@@ -28,7 +28,7 @@
   },
   "errors": {
     "invalidFileType": "Only PDF, XLS, XLSX, PPTX, and ZIP files are allowed.",
-    "fileTooLarge": "Each file must be 40 MB or smaller.",
+    "fileTooLarge": "Each file must be 10 MB or smaller.",
     "loginFailed": "Unable to sign in. Check your credentials and try again.",
     "passwordMismatch": "Passwords do not match.",
     "termsRequired": "You must accept the privacy policy and terms of use.",
@@ -111,7 +111,7 @@
     "projectLink": "GitHub or Drive link",
     "profilePicture": "Profile picture",
     "uploadPrompt": "Drop files here or choose files",
-    "uploadRules": "Accepted: PDF, XLS, XLSX, PPTX, ZIP. Maximum 40 MB per file."
+    "uploadRules": "Accepted: PDF, XLS, XLSX, PPTX, ZIP. Maximum 10 MB per file."
   },
   "auth": {
     "signIn": "Sign In",

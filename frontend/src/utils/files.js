@@ -1,5 +1,5 @@
 export const allowedExtensions = ['.pdf', '.xlsx', '.xls', '.pptx', '.zip']
-export const maxFileSize = 40 * 1024 * 1024
+export const maxFileSize = 10 * 1024 * 1024
 
 const allowedMimeTypes = [
   'application/pdf',

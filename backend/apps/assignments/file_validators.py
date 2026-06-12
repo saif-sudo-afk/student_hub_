@@ -6,7 +6,7 @@ import os
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
 
-MAX_SIZE = 40 * 1024 * 1024  # 40 MB
+MAX_SIZE = 10 * 1024 * 1024  # 10 MB (Cloudinary free plan limit)
 
 EXTENSION_TO_TYPE = {
     '.pdf': 'pdf',
@@ -41,6 +41,6 @@ def validate_uploaded_file(uploaded_file):
         )
 
     if uploaded_file.size > MAX_SIZE:
-        raise ValidationError('File size exceeds the 40 MB limit.')
+        raise ValidationError('File size exceeds the 10 MB limit.')
 
     return EXTENSION_TO_TYPE[ext]
