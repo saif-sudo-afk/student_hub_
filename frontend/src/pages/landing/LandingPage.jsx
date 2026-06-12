@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import TopControls from '../../components/TopControls'
+import { useTheme } from '../../context/ThemeContext'
 import { publicApi } from '../../services/endpoints'
 
 const featureIcons = [FileUp, CalendarDays, Megaphone, ShieldCheck, BookOpen, TrendingUp, Users, Zap]
@@ -55,7 +56,7 @@ function StatItem({ value, label, color, maxValue }) {
   return (
     <motion.div
       ref={ref}
-      className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur"
+      className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -63,8 +64,8 @@ function StatItem({ value, label, color, maxValue }) {
       <p className={`text-4xl font-black ${color}`}>
         {count.toLocaleString()}{value >= 10 ? '+' : ''}
       </p>
-      <p className="mt-2 text-sm font-medium text-slate-300">{label}</p>
-      <div className="mt-4 h-1.5 rounded-full bg-white/10 overflow-hidden">
+      <p className="mt-2 text-sm font-medium text-[var(--color-muted)]">{label}</p>
+      <div className="mt-4 h-1.5 rounded-full bg-[var(--color-border)] overflow-hidden">
         <motion.div
           className={`h-full rounded-full ${color.replace('text-', 'bg-')}`}
           initial={{ width: 0 }}
@@ -94,6 +95,7 @@ function MotionSection({ id, children, className = '' }) {
 
 export default function LandingPage() {
   const { t } = useTranslation()
+  const { isDark } = useTheme()
   const [platformStats, setPlatformStats] = useState(null)
   const features = t('landing.features.items', { returnObjects: true })
   const steps = t('landing.how.steps', { returnObjects: true })
@@ -109,19 +111,19 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen overflow-hidden bg-[var(--color-bg)]">
       {/* Fixed nav */}
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-bg)]/90 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
           <a href="#home" className="text-lg font-black tracking-wide text-gold-500">STUDENT HUB</a>
           <div className="hidden items-center gap-6 md:flex">
             {['home', 'about', 'features', 'contact'].map(key => (
-              <a key={key} href={`#${key}`} className="text-sm font-semibold text-slate-200 transition-colors hover:text-gold-400">
+              <a key={key} href={`#${key}`} className="text-sm font-semibold text-[var(--color-text)] transition-colors hover:text-gold-400">
                 {t(`nav.${key}`)}
               </a>
             ))}
           </div>
           <div className="flex items-center gap-2">
             <TopControls compact />
-            <Link to="/auth/login" className="hidden rounded-lg px-4 py-2 text-sm font-bold text-slate-100 transition-colors hover:bg-white/10 sm:inline-flex">
+            <Link to="/auth/login" className="hidden rounded-lg px-4 py-2 text-sm font-bold text-[var(--color-text)] transition-colors hover:bg-[var(--color-border)] sm:inline-flex">
               {t('auth.signIn')}
             </Link>
             <Link to="/auth/register" className="rounded-lg bg-gold-500 px-4 py-2 text-sm font-black text-navy-950 transition-colors hover:bg-gold-400">
@@ -132,23 +134,25 @@ export default function LandingPage() {
       </header>
 
       {/* Hero */}
-      <section id="home" className="relative flex min-h-screen items-center px-4 pb-20 pt-28 md:px-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,.2),transparent_32%),radial-gradient(circle_at_75%_30%,rgba(245,158,11,.14),transparent_28%),linear-gradient(135deg,#020617,#0f172a_55%,#111827)]" />
-        <div className="absolute inset-0 opacity-20" aria-hidden="true">
+      <section id="home" className="relative flex min-h-screen items-center bg-[var(--color-bg)] px-4 pb-20 pt-28 md:px-8">
+        {isDark && (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,.2),transparent_32%),radial-gradient(circle_at_75%_30%,rgba(245,158,11,.14),transparent_28%),linear-gradient(135deg,#020617,#0f172a_55%,#111827)]" />
+        )}
+        <div className="absolute inset-0 opacity-10" aria-hidden="true">
           <div className="absolute left-1/4 top-24 h-40 w-40 animate-float rounded-full border border-electric-500/40" />
           <div className="absolute bottom-24 right-1/5 h-56 w-56 animate-pulse-slow rounded-full border border-gold-500/30" />
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] bg-[size:72px_72px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(var(--color-border)_1px,transparent_1px),linear-gradient(90deg,var(--color-border)_1px,transparent_1px)] bg-[size:72px_72px]" />
         </div>
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1fr_.9fr]">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <p className="mb-4 inline-flex items-center gap-2 rounded-lg border border-gold-500/40 bg-gold-500/10 px-3 py-2 text-sm font-bold text-gold-300">
+            <p className="mb-4 inline-flex items-center gap-2 rounded-lg border border-gold-500/40 bg-gold-500/10 px-3 py-2 text-sm font-bold text-gold-500">
               <Sparkles size={15} />
               {t('landing.hero.eyebrow')}
             </p>
-            <h1 className="max-w-4xl text-5xl font-black leading-tight text-white md:text-7xl">
+            <h1 className="max-w-4xl text-5xl font-black leading-tight text-[var(--color-text)] md:text-7xl">
               {t('landing.hero.title')}
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300 md:text-xl">
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-[var(--color-muted)] md:text-xl">
               {t('landing.hero.subtitle')}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -156,7 +160,7 @@ export default function LandingPage() {
                 {t('landing.hero.primary')}
                 <ArrowRight size={18} />
               </Link>
-              <a href="#about" className="btn-secondary border-slate-600 text-white hover:border-gold-500">
+              <a href="#about" className="btn-secondary">
                 {t('landing.hero.secondary')}
               </a>
             </div>
@@ -174,9 +178,9 @@ export default function LandingPage() {
                   { v: platformStats.total_assignments, l: 'assignments' },
                   { v: platformStats.total_majors, l: 'majors' },
                 ].map(({ v, l }) => (
-                  <div key={l} className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2 border border-white/10">
-                    <span className="text-xl font-black text-gold-400">{v}</span>
-                    <span className="text-xs text-slate-400 capitalize">{l}</span>
+                  <div key={l} className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
+                    <span className="text-xl font-black text-gold-500">{v}</span>
+                    <span className="text-xs capitalize text-[var(--color-muted)]">{l}</span>
                   </div>
                 ))}
               </motion.div>
@@ -185,12 +189,12 @@ export default function LandingPage() {
 
           {/* Dashboard mockup */}
           <motion.div className="relative" initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.15 }}>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3 shadow-2xl backdrop-blur-sm">
-              <div className="rounded-lg bg-slate-950 p-5">
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 shadow-2xl">
+              <div className="rounded-lg bg-[var(--color-bg)] p-5">
                 <div className="mb-5 flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-slate-400 uppercase tracking-wider">{t('landing.mockup.label')}</p>
-                    <p className="mt-1 text-2xl font-black text-white">{t('landing.mockup.title')}</p>
+                    <p className="text-xs uppercase tracking-wider text-[var(--color-muted)]">{t('landing.mockup.label')}</p>
+                    <p className="mt-1 text-2xl font-black text-[var(--color-text)]">{t('landing.mockup.title')}</p>
                   </div>
                   <div className="rounded-lg bg-gold-500 px-3 py-2 text-sm font-black text-navy-950">{t('landing.mockup.score')}</div>
                 </div>
@@ -201,10 +205,10 @@ export default function LandingPage() {
                     { label: 'Assignments Total', value: platformStats?.total_assignments ?? '—', color: 'bg-emerald-500' },
                     { label: 'Academic Majors', value: platformStats?.total_majors ?? '—', color: 'bg-purple-500' },
                   ].map((card, i) => (
-                    <div key={card.label} className="rounded-lg border border-slate-800 bg-slate-900 p-4">
-                      <p className="text-xs text-slate-400">{card.label}</p>
-                      <p className="mt-2 text-2xl font-black text-white">{card.value}</p>
-                      <div className="mt-3 h-1.5 rounded-full bg-slate-800">
+                    <div key={card.label} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
+                      <p className="text-xs text-[var(--color-muted)]">{card.label}</p>
+                      <p className="mt-2 text-2xl font-black text-[var(--color-text)]">{card.value}</p>
+                      <div className="mt-3 h-1.5 rounded-full bg-[var(--color-border)]">
                         <motion.div
                           className={`h-1.5 rounded-full ${card.color}`}
                           initial={{ width: 0 }}
@@ -260,7 +264,7 @@ export default function LandingPage() {
       </MotionSection>
 
       {/* Features */}
-      <MotionSection id="features" className="bg-slate-500/5">
+      <MotionSection id="features" className="bg-[var(--color-border)]/20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 max-w-2xl">
             <p className="mb-3 text-sm font-black uppercase tracking-widest text-gold-500">{t('landing.features.eyebrow')}</p>
@@ -322,36 +326,36 @@ export default function LandingPage() {
       </MotionSection>
 
       {/* Live Platform Stats */}
-      <MotionSection id="stats" className="bg-slate-950 text-white">
+      <MotionSection id="stats" className="bg-[var(--color-border)]/20">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 text-center">
-            <p className="mb-2 text-sm font-black uppercase tracking-widest text-gold-400">Live platform data</p>
-            <h2 className="text-3xl font-black text-white md:text-4xl">Real numbers, right now</h2>
-            <p className="mt-3 text-slate-400">Every figure below is pulled live from the Student Hub database.</p>
+            <p className="mb-2 text-sm font-black uppercase tracking-widest text-gold-500">Live platform data</p>
+            <h2 className="text-3xl font-black text-[var(--color-text)] md:text-4xl">Real numbers, right now</h2>
+            <p className="mt-3 text-[var(--color-muted)]">Every figure below is pulled live from the Student Hub database.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-4">
             <StatItem
               value={platformStats?.total_students ?? 0}
               label="Enrolled Students"
-              color="text-electric-400"
+              color="text-electric-500"
               maxValue={maxStatValue}
             />
             <StatItem
               value={platformStats?.total_professors ?? 0}
               label="Active Professors"
-              color="text-gold-400"
+              color="text-gold-500"
               maxValue={maxStatValue}
             />
             <StatItem
               value={platformStats?.total_assignments ?? 0}
               label="Assignments Created"
-              color="text-emerald-400"
+              color="text-emerald-500"
               maxValue={maxStatValue}
             />
             <StatItem
               value={platformStats?.total_majors ?? 0}
               label="Academic Majors"
-              color="text-purple-400"
+              color="text-purple-500"
               maxValue={maxStatValue}
             />
           </div>
