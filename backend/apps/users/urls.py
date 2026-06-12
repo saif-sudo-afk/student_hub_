@@ -13,4 +13,5 @@ urlpatterns = [
     path('me/', views.me, name='me'),
     path('public-stats/', views.public_stats, name='public_stats'),
     path('social/complete/', views.social_complete, name='social_complete'),
+    path('complete-profile/', views.complete_profile, name='complete_profile'),
 ]

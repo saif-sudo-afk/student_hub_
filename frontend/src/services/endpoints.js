@@ -13,6 +13,7 @@ export const authApi = {
   passwordReset: payload => api.post('/auth/password-reset/', payload),
   passwordResetConfirm: payload => api.post('/auth/password-reset/confirm/', payload),
   passwordChange: payload => api.post('/auth/password-change/', payload),
+  completeProfile: payload => api.post('/auth/complete-profile/', payload),
 }
 
 export const adminApi = {

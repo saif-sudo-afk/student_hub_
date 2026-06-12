@@ -162,12 +162,12 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
 
 class CreateProfessorSerializer(serializers.Serializer):
-    """Admin-only: create a professor account."""
+    """Admin-only: create a professor account with a manually assigned password."""
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
     email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, validators=[validate_password])
     major_ids = serializers.ListField(child=serializers.UUIDField(), allow_empty=False)
-    send_welcome_email = serializers.BooleanField(default=True)
 
     def validate_email(self, value):
         email = CustomUser.objects.normalize_email(value).strip()
@@ -183,4 +183,23 @@ class CreateProfessorSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 f'Unknown major id(s): {", ".join(missing)}'
             )
+        return value
+
+
+class CompleteProfileSerializer(serializers.Serializer):
+    """Collect missing fields after Google OAuth signup."""
+    phone_number = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    year_of_study = serializers.IntegerField(min_value=1, max_value=7)
+    major_id = serializers.UUIDField()
+    agree_terms = serializers.BooleanField()
+
+    def validate_agree_terms(self, value):
+        if not value:
+            raise serializers.ValidationError('You must agree to the terms.')
+        return value
+
+    def validate_major_id(self, value):
+        from apps.pedagogique.models import Major
+        if not Major.objects.filter(id=value).exists():
+            raise serializers.ValidationError('Major not found.')
         return value

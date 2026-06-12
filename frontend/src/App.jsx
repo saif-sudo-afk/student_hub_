@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext'
 import LandingPage from './pages/landing/LandingPage'
 import {
   ChangePasswordPage,
+  CompleteProfilePage,
   LoginPage,
   PasswordResetConfirmPage,
   PasswordResetPage,
@@ -50,6 +51,14 @@ function GuestRoute({ children }) {
   return children
 }
 
+function ProfileCompletionRoute({ children }) {
+  const { user, loading, initialized } = useAuth()
+  if (loading || !initialized) return <div className="grid min-h-screen place-items-center font-bold">Loading...</div>
+  if (!user) return <Navigate to="/auth/login" replace />
+  if (user.student_profile) return <Navigate to="/student" replace />
+  return children
+}
+
 export default function App() {
   const location = useLocation()
 
@@ -70,6 +79,7 @@ export default function App() {
       <Route path="/auth/verify-email/:token" element={<VerifyEmailPage />} />
       <Route path="/auth/password-reset" element={<PasswordResetPage />} />
       <Route path="/auth/password-reset/confirm/:token" element={<PasswordResetConfirmPage />} />
+      <Route path="/auth/complete-profile" element={<ProfileCompletionRoute><CompleteProfilePage /></ProfileCompletionRoute>} />
       <Route path="/auth/change-password" element={<ProtectedRoute><ChangePasswordPage /></ProtectedRoute>} />
       <Route path="/admin/*" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
       <Route path="/professor/*" element={<ProtectedRoute roles={['PROFESSOR']}><ProfessorDashboard /></ProtectedRoute>} />

@@ -133,7 +133,10 @@
       "You agree to upload only academic material you are authorized to share and to keep your credentials private.",
       "Administrators and assigned professors may review academic activity connected to their responsibilities."
     ],
-    "registrationSuccess": "Registration complete. Check your email to verify your account.",
+    "registrationSuccess": "Registration complete. You can now sign in.",
+    "completeProfileTitle": "Complete your profile",
+    "completeProfileSubtitle": "A few more details to set up your student account.",
+    "completeProfileSuccess": "Profile complete. Welcome to Student Hub!",
     "verifying": "Verifying your email address...",
     "verifyTitle": "Email verification",
     "verifySuccess": "Your email has been verified. You can now sign in.",
@@ -240,7 +243,7 @@
       "subtitle": "Search, filter, activate, deactivate, and create professor accounts.",
       "createProfessor": "Create Professor",
       "professorCreated": "Professor account created.",
-      "sendWelcome": "Send welcome email with temporary credentials",
+      "professorPassword": "Account password",
       "activate": "Activate",
       "deactivate": "Deactivate"
     },

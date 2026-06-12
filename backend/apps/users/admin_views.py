@@ -3,15 +3,11 @@ Admin-only API views for user management.
 """
 
 import logging
-import secrets
-import string
 
-from django.conf import settings
 from django.db import transaction
-from django.template.loader import render_to_string
 from rest_framework import status
 
-from apps.notifications.email import describe_email_settings, send_email, send_email_async, send_email_with_diagnostics
+from apps.notifications.email import describe_email_settings, send_email_with_diagnostics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
@@ -22,15 +18,6 @@ from apps.pedagogique.models import Major
 
 
 logger = logging.getLogger(__name__)
-
-
-class EmailDeliveryError(Exception):
-    pass
-
-
-def generate_temp_password(length=12):
-    chars = string.ascii_letters + string.digits + '!@#$%'
-    return ''.join(secrets.choice(chars) for _ in range(length))
 
 
 @api_view(['GET'])
@@ -109,13 +96,12 @@ def user_detail(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAdmin])
 def create_professor(request):
-    """Admin creates a professor account with a temp password."""
+    """Admin creates a professor account with a manually assigned password."""
     serializer = CreateProfessorSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     data = serializer.validated_data
-    temp_password = generate_temp_password()
 
     with transaction.atomic():
         user = CustomUser.objects.create(
@@ -125,26 +111,16 @@ def create_professor(request):
             role=CustomUser.PROFESSOR,
             is_active=True,
             is_email_verified=True,
-            force_password_change=True,
         )
-        user.set_password(temp_password)
+        user.set_password(data['password'])
         user.save()
 
         prof = ProfessorProfile.objects.create(user=user)
         majors = Major.objects.filter(id__in=data['major_ids'])
         prof.majors.set(majors)
 
-    if data.get('send_welcome_email', True):
-        html = render_to_string('emails/welcome_professor.html', {
-            'first_name': user.first_name,
-            'email': user.email,
-            'temp_password': temp_password,
-            'login_url': f"{settings.FRONTEND_URL}/auth/login",
-        })
-        send_email_async('Welcome to Student Hub - Your Professor Account', html, user.email)
-
     return Response(
-        {'detail': 'Professor account created.', 'temp_password': temp_password, 'user': UserSerializer(user).data},
+        {'detail': 'Professor account created.', 'user': UserSerializer(user).data},
         status=status.HTTP_201_CREATED,
     )
 

@@ -200,7 +200,7 @@ function Overview() {
 function UsersSection() {
   const { t } = useTranslation()
   const [profOpen, setProfOpen] = useState(false)
-  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', major_ids: [], send_welcome_email: true })
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '', major_ids: [] })
   const users = useLoad(() => adminApi.users({ page_size: 100 }), [])
   const majors = useLoad(() => pedagogiqueApi.majors({ page_size: 100 }), [])
 
@@ -267,15 +267,15 @@ function UsersSection() {
               <input className="input-field" type={field === 'email' ? 'email' : 'text'} value={form[field]} onChange={event => setForm({ ...form, [field]: event.target.value })} required />
             </label>
           ))}
+          <label className="block">
+            <span className="label">{t('admin.users.professorPassword')}</span>
+            <input className="input-field" type="password" value={form.password} onChange={event => setForm({ ...form, password: event.target.value })} required minLength={8} />
+          </label>
           <label className="block md:col-span-2">
             <span className="label">{t('forms.majors')}</span>
             <select className="input-field min-h-32" multiple value={form.major_ids} onChange={event => setForm({ ...form, major_ids: Array.from(event.target.selectedOptions).map(option => option.value) })}>
               {asList(majors.data).map(major => <option key={major.id} value={major.id}>{major.name}</option>)}
             </select>
-          </label>
-          <label className="flex gap-3 md:col-span-2">
-            <input type="checkbox" checked={form.send_welcome_email} onChange={event => setForm({ ...form, send_welcome_email: event.target.checked })} />
-            <span>{t('admin.users.sendWelcome')}</span>
           </label>
           <button type="submit" className="btn-primary md:col-span-2">{t('common.save')}</button>
         </form>

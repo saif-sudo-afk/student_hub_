@@ -133,7 +133,10 @@
       "Vous acceptez de téléverser uniquement du contenu académique que vous êtes autorisé à partager et de garder vos identifiants confidentiels.",
       "Les administrateurs et les professeurs assignés peuvent consulter l'activité académique liée à leurs responsabilités."
     ],
-    "registrationSuccess": "Inscription terminée. Vérifiez votre email pour activer votre compte.",
+    "registrationSuccess": "Inscription terminée. Vous pouvez maintenant vous connecter.",
+    "completeProfileTitle": "Complétez votre profil",
+    "completeProfileSubtitle": "Quelques informations supplémentaires pour configurer votre compte étudiant.",
+    "completeProfileSuccess": "Profil complété. Bienvenue sur Student Hub !",
     "verifying": "Vérification de votre adresse email...",
     "verifyTitle": "Vérification email",
     "verifySuccess": "Votre email a été vérifié. Vous pouvez vous connecter.",
@@ -240,7 +243,7 @@
       "subtitle": "Rechercher, filtrer, activer, désactiver et créer des comptes professeurs.",
       "createProfessor": "Créer un professeur",
       "professorCreated": "Compte professeur créé.",
-      "sendWelcome": "Envoyer l'email de bienvenue avec les identifiants temporaires",
+      "professorPassword": "Mot de passe du compte",
       "activate": "Activer",
       "deactivate": "Désactiver"
     },

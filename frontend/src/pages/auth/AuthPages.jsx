@@ -312,6 +312,72 @@ export function PasswordResetConfirmPage() {
   )
 }
 
+export function CompleteProfilePage() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const { fetchMe } = useAuth()
+  const [majors, setMajors] = useState([])
+  const [termsOpen, setTermsOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({ phone_number: '', year_of_study: '1', major_id: '', agree_terms: false })
+
+  useEffect(() => {
+    pedagogiqueApi.majors({ page_size: 100 }).then(res => setMajors(res.data.results || res.data)).catch(() => setMajors([]))
+  }, [])
+
+  const submit = async event => {
+    event.preventDefault()
+    if (!form.agree_terms) { toast.error(t('errors.termsRequired')); return }
+    if (!form.major_id) { toast.error(t('forms.selectMajor')); return }
+    setLoading(true)
+    try {
+      await authApi.completeProfile({ ...form, year_of_study: parseInt(form.year_of_study) })
+      await fetchMe()
+      toast.success(t('auth.completeProfileSuccess'))
+      navigate('/student', { replace: true })
+    } catch (error) {
+      toast.error(apiErrorMessage(error, t('errors.registrationFailed')))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <AuthShell title={t('auth.completeProfileTitle')} subtitle={t('auth.completeProfileSubtitle')}>
+      <form className="space-y-4" onSubmit={submit}>
+        <Field label={t('forms.phone_number')}>
+          <input className="input-field" type="tel" value={form.phone_number} onChange={event => setForm({ ...form, phone_number: event.target.value })} />
+        </Field>
+        <Field label={t('forms.year')}>
+          <select className="input-field" value={form.year_of_study} onChange={event => setForm({ ...form, year_of_study: event.target.value })} required>
+            {[1,2,3,4,5].map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </Field>
+        <Field label={t('forms.major')}>
+          <select className="input-field" value={form.major_id} onChange={event => setForm({ ...form, major_id: event.target.value })} required>
+            <option value="">{t('forms.selectMajor')}</option>
+            {majors.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+        </Field>
+        <label className="flex items-start gap-3 text-sm">
+          <input type="checkbox" className="mt-0.5 shrink-0" checked={form.agree_terms} onChange={event => setForm({ ...form, agree_terms: event.target.checked })} />
+          <span>{t('auth.agreePrefix')}{' '}
+            <button type="button" className="font-semibold text-electric-500 underline" onClick={() => setTermsOpen(true)}>{t('auth.termsLink')}</button>
+          </span>
+        </label>
+        <button className="btn-primary w-full" type="submit" disabled={loading}>
+          {loading ? t('common.loading') : t('common.save')}
+        </button>
+      </form>
+      <AccessibleModal open={termsOpen} title={t('auth.termsTitle')} onClose={() => setTermsOpen(false)}>
+        <div className="space-y-3 text-sm text-[var(--color-muted)]">
+          {t('auth.termsBody', { returnObjects: true }).map((p, i) => <p key={i}>{p}</p>)}
+        </div>
+      </AccessibleModal>
+    </AuthShell>
+  )
+}
+
 export function ChangePasswordPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()

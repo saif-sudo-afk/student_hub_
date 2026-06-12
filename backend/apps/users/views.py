@@ -22,7 +22,7 @@ from apps.notifications.email import send_email, send_email_async
 
 logger = logging.getLogger(__name__)
 
-from .models import CustomUser, EmailVerificationToken, PasswordResetToken
+from .models import CustomUser, EmailVerificationToken, PasswordResetToken, StudentProfile
 from .serializers import (
     StudentRegisterSerializer,
     LoginSerializer,
@@ -31,6 +31,7 @@ from .serializers import (
     PasswordChangeSerializer,
     UserSerializer,
     UserUpdateSerializer,
+    CompleteProfileSerializer,
 )
 
 
@@ -318,7 +319,40 @@ def social_complete(request):
         return HttpResponseRedirect(f"{frontend}/auth/login?{params}")
 
     tokens = get_tokens_for_user(user)
-    target = f"{frontend}/auth/login#access={tokens['access']}&refresh={tokens['refresh']}"
+    has_profile = StudentProfile.objects.filter(user=user).exists()
+    if not has_profile and user.role == CustomUser.STUDENT:
+        target = f"{frontend}/auth/complete-profile#access={tokens['access']}&refresh={tokens['refresh']}"
+    else:
+        target = f"{frontend}/auth/login#access={tokens['access']}&refresh={tokens['refresh']}"
     response = HttpResponseRedirect(target)
     set_auth_cookies(response, tokens)
     return response
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def complete_profile(request):
+    """Complete profile for students who signed up via Google OAuth."""
+    if StudentProfile.objects.filter(user=request.user).exists():
+        return Response({'detail': 'Profile already complete.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = CompleteProfileSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    data = serializer.validated_data
+    from apps.pedagogique.models import Major
+
+    with transaction.atomic():
+        if data.get('phone_number'):
+            request.user.phone_number = data['phone_number']
+            request.user.save(update_fields=['phone_number'])
+
+        major = Major.objects.get(id=data['major_id'])
+        StudentProfile.objects.create(
+            user=request.user,
+            major=major,
+            year_of_study=data['year_of_study'],
+        )
+
+    return Response(UserSerializer(request.user).data, status=status.HTTP_201_CREATED)
