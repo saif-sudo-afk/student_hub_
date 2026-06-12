@@ -6,7 +6,7 @@ All PKs are UUIDs. CustomUser uses email as the username field.
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
-from cloudinary_storage.storage import RawMediaCloudinaryStorage
+from cloudinary_storage.storage import RawMediaCloudinaryStorage, MediaCloudinaryStorage
 
 
 class CustomUserManager(BaseUserManager):
@@ -48,7 +48,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     force_password_change = models.BooleanField(default=False)
     profile_picture = models.ImageField(
         upload_to='profile_pictures/',
-        storage=RawMediaCloudinaryStorage(),
+        storage=MediaCloudinaryStorage(),
         blank=True,
         null=True,
     )
