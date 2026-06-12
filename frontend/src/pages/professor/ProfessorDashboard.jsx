@@ -209,11 +209,93 @@ function AssignmentForm({ onCreated, groupWork = false }) {
   )
 }
 
+function ReviewModal({ state, onClose, onDone }) {
+  const { t } = useTranslation()
+  const [grade, setGrade] = useState('')
+  const [feedback, setFeedback] = useState('')
+  const [saving, setSaving] = useState(false)
+  const isApprove = state?.action === 'approve'
+
+  useEffect(() => {
+    if (!state) { setGrade(''); setFeedback('') }
+  }, [state])
+
+  const submit = async e => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await assignmentsApi.review(state.assignmentId, {
+        submission_id: state.submission.id,
+        action: state.action,
+        grade: isApprove ? Number(grade) : undefined,
+        feedback: feedback || undefined,
+      })
+      toast.success(t('common.saved'))
+      onDone()
+      onClose()
+    } catch (err) {
+      toast.error(apiErrorMessage(err, t('errors.saveFailed')))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <AccessibleModal
+      open={!!state}
+      title={isApprove ? t('common.approve') : t('common.reject')}
+      onClose={onClose}
+      size="max-w-md"
+    >
+      <form onSubmit={submit} className="space-y-4 pt-1">
+        {isApprove && (
+          <div>
+            <label className="mb-1 block text-sm font-semibold">{t('professor.assignments.gradePrompt')}</label>
+            <input
+              className="input-field"
+              type="number"
+              min="0"
+              max="20"
+              step="0.5"
+              value={grade}
+              onChange={e => setGrade(e.target.value)}
+              required
+              autoFocus
+            />
+          </div>
+        )}
+        <div>
+          <label className="mb-1 block text-sm font-semibold">
+            {isApprove ? t('professor.assignments.optionalFeedback') : t('professor.assignments.feedbackPrompt')}
+          </label>
+          <textarea
+            className="input-field min-h-[6rem]"
+            value={feedback}
+            onChange={e => setFeedback(e.target.value)}
+            required={!isApprove}
+          />
+        </div>
+        <div className="flex justify-end gap-2 pt-1">
+          <button type="button" className="btn-secondary px-4 py-2" onClick={onClose}>{t('common.close')}</button>
+          <button
+            type="submit"
+            className={isApprove ? 'btn-primary px-4 py-2' : 'rounded-lg bg-red-500 px-4 py-2 font-bold text-white transition-colors hover:bg-red-400'}
+            disabled={saving}
+          >
+            {isApprove ? t('common.approve') : t('common.reject')}
+          </button>
+        </div>
+      </form>
+    </AccessibleModal>
+  )
+}
+
 function AssignmentsSection() {
   const { t } = useTranslation()
   const assignments = useLoad(() => assignmentsApi.list({ page_size: 100 }), [])
   const [selected, setSelected] = useState(null)
   const [submissions, setSubmissions] = useState([])
+  const [reviewState, setReviewState] = useState(null)
 
   const openSubmissions = async assignment => {
     setSelected(assignment)
@@ -221,19 +303,7 @@ function AssignmentsSection() {
     setSubmissions(asList(res.data))
   }
 
-  const review = async (submission, action) => {
-    const grade = action === 'approve' ? window.prompt(t('professor.assignments.gradePrompt')) : undefined
-    const feedback = action === 'reject'
-      ? window.prompt(t('professor.assignments.feedbackPrompt'))
-      : window.prompt(t('professor.assignments.optionalFeedback'))
-    try {
-      await assignmentsApi.review(selected.id, { submission_id: submission.id, action, grade, feedback })
-      openSubmissions(selected)
-      toast.success(t('common.saved'))
-    } catch (error) {
-      toast.error(apiErrorMessage(error, t('errors.saveFailed')))
-    }
-  }
+  const refreshSubmissions = () => selected && openSubmissions(selected)
 
   return (
     <section className="grid gap-5 xl:grid-cols-[400px_1fr]">
@@ -243,7 +313,7 @@ function AssignmentsSection() {
       ) : (
         <DataTable
           rows={asList(assignments.data)}
-          filters={[{ key: 'type', labelKey: 'filters.type', options: ['TP', 'TD', 'PROJECT'].map(t => ({ value: t, label: t })) }]}
+          filters={[{ key: 'type', labelKey: 'filters.type', options: ['TP', 'TD', 'PROJECT'].map(v => ({ value: v, label: v })) }]}
           columns={[
             { key: 'title', labelKey: 'tables.title' },
             { key: 'type', labelKey: 'tables.type' },
@@ -272,13 +342,14 @@ function AssignmentsSection() {
             { key: 'grade', labelKey: 'tables.grade', render: row => row.grade || '—' },
             { key: 'actions', labelKey: 'tables.actions', render: row => (
               <div className="flex gap-2">
-                <button type="button" className="btn-primary px-3 py-2" onClick={() => review(row, 'approve')}>{t('common.approve')}</button>
-                <button type="button" className="btn-secondary px-3 py-2" onClick={() => review(row, 'reject')}>{t('common.reject')}</button>
+                <button type="button" className="btn-primary px-3 py-2" onClick={() => setReviewState({ submission: row, action: 'approve', assignmentId: selected.id })}>{t('common.approve')}</button>
+                <button type="button" className="btn-secondary px-3 py-2" onClick={() => setReviewState({ submission: row, action: 'reject', assignmentId: selected.id })}>{t('common.reject')}</button>
               </div>
             )},
           ]}
         />
       </AccessibleModal>
+      <ReviewModal state={reviewState} onClose={() => setReviewState(null)} onDone={refreshSubmissions} />
     </section>
   )
 }

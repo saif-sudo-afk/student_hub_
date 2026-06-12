@@ -64,10 +64,6 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             link=f'/student/assignments',
         )
 
-    def perform_create(self, serializer):
-        assignment = serializer.save()
-        self._notify_assignment_students(assignment)
-
     @action(detail=True, methods=['post'], permission_classes=[IsStudent])
     def submit(self, request, pk=None):
         assignment = self.get_object()

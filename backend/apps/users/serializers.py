@@ -189,7 +189,7 @@ class CreateProfessorSerializer(serializers.Serializer):
 class CompleteProfileSerializer(serializers.Serializer):
     """Collect missing fields after Google OAuth signup."""
     phone_number = serializers.CharField(max_length=20, required=False, allow_blank=True)
-    year_of_study = serializers.IntegerField(min_value=1, max_value=7)
+    year_of_study = serializers.IntegerField(min_value=1, max_value=5)
     major_id = serializers.UUIDField()
     agree_terms = serializers.BooleanField()
 
